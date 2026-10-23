@@ -1649,3 +1649,49 @@ body.is-dragging { cursor: grabbing; }
   .enemy.clustered .enemy-name { font-size: 8px; }
   .enemy.clustered .enemy-bar { width: 20px; }
 }
+
+/* =================================================================
+   INS-MVP-0.9d: readability — 5-enemy stacking, 360 name size, guide.
+   ================================================================= */
+.sheet-section { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.sheet-section h2 { font: 900 16px/1.2 var(--font-display); }
+.guide-list { margin: 6px 0 0; padding-left: 16px; display: grid; gap: 5px; }
+.guide-list li { color: #4f3d2b; font-size: 10px; line-height: 1.65; }
+.guide-list b { color: #33281d; }
+.guide-glyph {
+  display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 2px;
+  border: 1px solid #7a5c37; border-radius: 2px; background: #fdf6e6;
+  color: #8d2f1f; font-size: 9px; font-weight: 900;
+}
+.guide-note { margin-top: 6px; color: #7a5c37; font-size: 9px; line-height: 1.6; }
+@media (max-height: 660px) {
+  .enemy-name, .enemy.clustered .enemy-name { font-size: 10px; }
+  .enemy-tag { font-size: 7px; }
+  .enemy.boss .enemy-tag { font-size: 8px; }
+}
+@media (max-width: 370px) {
+  .enemy-name, .enemy.clustered .enemy-name { font-size: 10px; line-height: 1.02; }
+}
+
+/* 0.9d stack fixes: clustered names 10px, tag/name/bar separation */
+.enemy.clustered .enemy-name { font-size: 10px; line-height: 1.02; bottom: 2px; }
+@media (max-height: 660px) {
+  .enemy.clustered .enemy-name { font-size: 10px; line-height: 1; bottom: 0; }
+  .enemy-tag { font-size: 6px; line-height: 1.2; }
+  .enemy.boss .enemy-tag { font-size: 7px; }
+}
+
+/* 0.9d compact stack: taller clustered token so 2-line name clears the tag */
+@media (max-height: 660px) {
+  .enemy.clustered .enemy-token { height: 32px; }
+  .enemy.clustered .enemy-name { bottom: 1px; line-height: 1; font-size: 10px; }
+  .enemy-tag { top: 1px; padding: 0 1px; font-size: 6px; line-height: 1; }
+  .enemy.boss .enemy-tag { font-size: 7px; }
+}
+
+/* 0.9d name box: keep the full name below the tag, above the bar */
+.enemy-name { display: block; top: 11px; bottom: 1px; overflow: hidden; }
+.enemy.clustered .enemy-name { top: 11px; bottom: 1px; }
+@media (max-height: 660px) {
+  .enemy.clustered .enemy-name { top: 8px; bottom: 1px; }
+}
