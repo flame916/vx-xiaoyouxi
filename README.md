@@ -1,6 +1,19 @@
-﻿# 理了个赔 · MVP 0.9a（GitHub Pages）
+# 理了个赔 · MVP 0.9c
 
-这是一个**纯静态、无需构建**的 GitHub Pages 仓库骨架：`docs/` 里是完整的 0.9a 浏览器版，`.github/workflows/pages.yml` 负责发布。
+纯静态、无需构建的 GitHub Pages 仓库：`docs/` 里是完整 0.9c 浏览器版。
+
+## 线上
+
+https://flame916.github.io/vx-xiaoyouxi/
+
+## 发布方式
+
+仓库 **Settings → Pages → Build and deployment**：
+- Source：**Deploy from a branch**
+- Branch：**main**
+- 目录：**/docs**
+
+没有 GitHub Actions 工作流；更新 `docs/` 后 Pages 自动重建。
 
 ## 本地预览
 
@@ -9,33 +22,26 @@ python -m http.server 8021 --directory docs
 # http://127.0.0.1:8021/
 ```
 
-不要直接双击 `docs/index.html`：模块和 JSON 需要 HTTP。
+不要直接双击 `docs/index.html`；模块/JSON 需要 HTTP。
 
-## 发布到 GitHub Pages
+## 0.9c 内容
 
-1. 仓库 Settings → Pages → Build and deployment → Source 选 **Deploy from a branch**。
-2. Branch 选 **main**，目录选 **/docs**，Save。
-3. 等 Pages 构建完，访问 `https://flame916.github.io/vx-xiaoyouxi/`。
-
-本仓库已本地提交并推到 `flame916/vx-xiaoyouxi`；无 GitHub Actions 工作流，避免 OAuth App 的 workflow scope 限制。
-
-## 版本与范围
-
-- INS-MVP-0.9a：5 波、S/A/B/C 评级、首步教学、波次模糊提示、25 个原创 SVG、地图/特效深化。
-- 浏览器基线：Chrome/Edge ≥123、Safari/iOS ≥17.2、Firefox ≥138（ES module + JSON import attributes）。
-- 存档：localStorage + Web Locks，键 `ins-mvp-07-profile`；Pages 上是新源，首次打开会新建档，不会读取你本地 8020 的进度。
-- 微信小游戏本轮不做：DOM/CSS 不能直接进小游戏，Canvas 端口另立任务。
+- 六险：车损/建工/财产/机器损坏/责任/船舶；购买价随波 2/3/4/5/6。
+- 敌卡：客户/工地佬/船佬，小案/大案标签；Boss 4/5 波“大案来了”，船佬喊叫/工地佬砖块眩晕。
+- 责任险：人伤绷带定身 800ms，客户 ×1.5。
+- 已放置险种可拖回待启用栏；返利商店只结案后开放；无波次预告。
 
 ## 验证
 
-- 04 独立验收 179/179，P0=0/P1=0/P2=2；默认资源 5 波可通（S，0 漏）。
-- 未测：真机触屏、iOS 安全区、字体回退、微信开发者工具、Pages 真实推送/CDN、旧浏览器、真人手感。
+- 04：0.9b 24/24（P0=0/P1=0/P2=2）；0.9c 19/19（P0=0/P1=0/P2=0）。
+- 0.9c 46/46 哈希；0.9b 43/46（3 个=0.9c 改动）；0.9a/0.8a/0.7a/0.6 未变。
+- D05：朴素 75HP/C、6×L1 第 4 波失守、优化 0 漏 S。
+
+## 未测
+
+真机触屏/iOS 安全区/字体、微信开发者工具/小游戏包、CDN/多地区、音效、真人平衡、Boss/绷带长期手感。不签微信/真机通过。
 
 ## 目录
 
-- `docs/`：游戏静态文件（index.html、app.js、core.js、styles.css、insurance-config.json、assets/0.7）
-- `.github/workflows/pages.yml`：Pages 发布
+- `docs/`：index.html、app.js、core.js、styles.css、insurance-config.json、assets/0.7 + 0.9 + 0.9b
 - `README.md`：本文件
-
-
-
