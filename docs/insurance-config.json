@@ -1,1315 +1,1446 @@
 {
-  "schema_version": 6,
-  "config_version": "INS-MVP-0.9",
-  "classification": "INS-P-006 策划定稿的 0.9 唯一参数来源：在 0.8a 上按用户选择扩展为六险种（新增机器损坏/责任/船舶）、购买价随波 2/3/4/5/6、已装险种可拖回待启用栏、两类敌人改为白纸粗墨大字贼/兵手绘棋子。0.8a 的返利/门禁/无预告/5波/评级/教学/商店/迁移全部保留；0.5/0.6 规则与经济单价冻结。不是平衡结论，未做真机/微信验证。",
-  "content_scope": {
-    "waves": 5,
-    "enemies": 2,
-    "towers": 6,
-    "boss": false,
-    "new_enemy_types": 0,
-    "maps": 1,
-    "base_wave_1_unchanged": true,
-    "waves_2_to_5_retuned": true,
-    "new_assets_p0": 0,
-    "optional_assets_p1": [
-      "badge-car-damage.svg",
-      "badge-construction.svg",
-      "badge-property.svg"
-    ],
-    "removed_from_0_7a": [
-      "waves[].preview（波次预告文案）",
-      "布防精确情报/模糊提示",
-      "购买即落位路径"
-    ],
-    "difficulty_retune_0_8a": true,
-    "waves_0_8a": "4/7/16/19/22；HP ×1/2.4/5.2/7.0/7.6；速度 ×1/1.12/1.28/1.36/1.44",
-    "difficulty_only_delta": true,
-    "new_tower_types": 3,
-    "tower_ids": [
-      "car_damage",
-      "construction",
-      "property",
-      "machine_damage",
-      "liability",
-      "marine"
-    ],
-    "new_p0_assets": [
-      "unit-machine-damage.svg",
-      "unit-liability.svg",
-      "unit-marine.svg",
-      "enemy-token-thief.svg",
-      "enemy-token-soldier.svg"
-    ],
-    "changes_0_9": [
-      "formation->hand 拖回",
-      "buy_cost_by_wave",
-      "三新险种",
-      "敌人卡面",
-      "schema 6/envelope 4/key ins-mvp-09-profile"
-    ]
-  },
-  "simulation": {
-    "tick_ms": 50,
-    "path_length": 100,
-    "default_seed": 20261020,
-    "rng": "xorshift32_nonzero_unsigned",
-    "max_catchup_ticks_per_frame": 10
-  },
-  "board": {
-    "columns": 8,
-    "rows": 10,
-    "path": [
-      [
-        7,
-        0
-      ],
-      [
-        7,
-        1
-      ],
-      [
-        7,
-        2
-      ],
-      [
-        7,
-        3
-      ],
-      [
-        6,
-        3
-      ],
-      [
-        5,
-        3
-      ],
-      [
-        4,
-        3
-      ],
-      [
-        3,
-        3
-      ],
-      [
-        2,
-        3
-      ],
-      [
-        1,
-        3
-      ],
-      [
-        0,
-        3
-      ],
-      [
-        0,
-        4
-      ],
-      [
-        0,
-        5
-      ],
-      [
-        0,
-        6
-      ],
-      [
-        1,
-        6
-      ],
-      [
-        2,
-        6
-      ],
-      [
-        3,
-        6
-      ],
-      [
-        4,
-        6
-      ],
-      [
-        5,
-        6
-      ],
-      [
-        6,
-        6
-      ],
-      [
-        7,
-        6
-      ],
-      [
-        7,
-        7
-      ],
-      [
-        7,
-        8
-      ],
-      [
-        7,
-        9
-      ]
-    ],
-    "office_positions": [
-      [
-        2,
-        2
-      ],
-      [
-        4,
-        2
-      ],
-      [
-        6,
-        2
-      ],
-      [
-        2,
-        5
-      ],
-      [
-        4,
-        5
-      ],
-      [
-        6,
-        5
-      ]
-    ],
-    "inspector_position": [
-      7,
-      9
-    ],
-    "entry_position": [
-      7,
-      0
-    ],
-    "exit_position": [
-      7,
-      9
-    ],
-    "layout_unchanged_from_0_5": true
-  },
-  "formation": {
-    "base_hp": 100,
-    "base_takes_leak_only": true,
-    "tower_permanent_death": false
-  },
-  "economy": {
-    "resource_label": "保费",
-    "wave_clear_reward": 6,
-    "hand_capacity": 8,
-    "offer_count": 3,
-    "offer_level": 1,
-    "buy_cost": 2,
-    "buy_target": "hand",
-    "buy_requires_empty_hand_slot": true,
-    "buy_auto_place": false,
-    "deploy_cost": 0,
-    "merge_cost": 0,
-    "move_cost": 0,
-    "withdraw_cost": 0,
-    "free_refresh_per_prep": 1,
-    "paid_refresh_cost": 1,
-    "salvage_refund_by_level": [
-      1,
-      2,
-      4
-    ],
-    "max_level": 3,
-    "initial_hand": [
-      "car_damage",
-      "construction",
-      "property",
-      "machine_damage",
-      "liability",
-      "marine"
-    ],
-    "initial_offers": [
-      "car_damage",
-      "construction",
-      "property"
-    ],
-    "offer_pool": [
-      "car_damage",
-      "construction",
-      "property",
-      "machine_damage",
-      "liability",
-      "marine"
-    ],
-    "offer_weights": [
-      1,
-      1,
-      1,
-      1,
-      1,
-      1
-    ],
-    "prices_unchanged_from_0_5": true,
-    "first_grant_unchanged": true,
-    "full_clear_premium_theory": 98,
-    "premium_theory_note": "68 个来件×1 + 5 波×6 = 98；不含首次赠送 6。来件数增加导致理论收入由 89 升到 98，是数量变化的自然结果，单价与奖励规则未改。",
-    "rebate": {
-      "enabled": true,
-      "label": "返利",
-      "authoritative_path": "profile.rebate",
-      "rate": 0.1,
-      "base": "current_premium",
-      "base_options": [
-        "current_premium",
-        "wave_earned",
-        "wave_spent"
-      ],
-      "rounding": "floor",
-      "trigger": "wave_clear",
-      "include_final_wave": true,
-      "grant_on_defeat_or_abandon": false,
-      "dedupe": "cleared_wave_ids",
-      "cap_path": "profile.premium_cap",
-      "persists_across_runs": true,
-      "spend": "shop_only",
-      "migration_initial": 0,
-      "same_batch_as_premium_reward": true,
-      "formula": {
-        "current_premium": "floor(profile.premium_after_wave_clear_reward * rate)",
-        "wave_earned": "floor(game.wave_premium_earned * rate)",
-        "wave_spent": "floor(game.wave_premium_spent * rate)"
-      },
-      "examples": [
-        {
-          "case": "朴素全清、每波不追加购买",
-          "premium_after_each_wave": [
-            10,
-            23,
-            45,
-            70,
-            98
-          ],
-          "rebate_each_wave": [
-            1,
-            2,
-            4,
-            7,
-            9
-          ],
-          "rebate_total": 23
-        },
-        {
-          "case": "第 2 波前花 6 买 3 份条款",
-          "premium_after_wave1": 4,
-          "rebate_wave1": 0,
-          "note": "基数用当前保费，花得越多返利越少"
-        }
-      ]
-    },
-    "buy_cost_by_wave": [
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "buy_cost_basis": "current_wave",
-    "buy_cost_legacy_fallback": 2,
-    "move_back": {
-      "enabled": true,
-      "from": "formation",
-      "to": "hand_empty_slot",
-      "cost": 0,
-      "phases": [
-        "prep"
-      ],
-      "reject_when_hand_full": true,
-      "copies_card": false,
-      "keeps_level_and_salvage": true,
-      "merge_from_formation": false
-    },
-    "offer_pool_note": "六险种等权 1:1:1:1:1:1，每个 1/6；初始手牌为六种各 1，初始三份可选条款仍是车/建/财（回归基线）"
-  },
-  "profile": {
-    "first_grant": 6,
-    "premium_cap": 9007199254740991,
-    "rebate_cap": 9007199254740991,
-    "inventory_cap_per_item": 3,
-    "receipt_limit": 128,
-    "teaching_flag_path": "profile.teaching_done",
-    "rebate_path": "profile.rebate"
-  },
-  "shop": {
-    "label": "营销部",
-    "currency": "rebate",
-    "currency_label": "返利",
-    "zero_settlement_price": 24,
-    "deny_claim_price": 10,
-    "outside_liability_price": 6,
-    "prices_unit": "rebate",
-    "open_phases": [
-      "victory",
-      "defeat"
-    ],
-    "purchase_phases": [
-      "victory",
-      "defeat"
-    ],
-    "purchase_requires_terminal": true,
-    "cover_entry": "disabled_with_reason",
-    "combat_entry": "disabled_with_reason",
-    "terminal_entry": "enabled",
-    "entry_disabled_text": "结案后开放",
-    "visible_reason_required": true,
-    "inventory_cap": 3,
-    "persists_across_runs": true,
-    "uses_premium": false
-  },
-  "salvage": {
-    "refund_cap_by_level": [
-      1,
-      2,
-      4
-    ],
-    "free_card_credit": 0,
-    "purchased_level_one_credit": 1,
-    "legacy_credit": 0
-  },
-  "items": {
-    "zero_settlement": {
-      "id": "zero_settlement",
-      "name": "零结",
-      "duration_ms": 700,
-      "max_active_enemies_in_one_wave": 22,
-      "not_profitable_alone_check": "第 5 波 22 活敌×1+守波6=28，首次高于价格 24；但零结需 24 返利（约 2 轮）且每局一次、结案才可买，仍不构成保费循环；价格按派工不动"
-    },
-    "deny_claim": {
-      "id": "deny_claim",
-      "name": "拒赔",
-      "duration_ms": 700
-    },
-    "outside_liability": {
-      "id": "outside_liability",
-      "name": "不属责",
-      "duration_ms": 3000,
-      "duration_ticks": 60
-    }
-  },
-  "persistence": {
-    "format_id": "insurance-profile-0.9",
-    "envelope_schema_version": 4,
-    "game_schema_version": 6,
-    "authoritative_key": "ins-mvp-09-profile",
-    "import_from": [
-      {
-        "priority": 1,
-        "key": "ins-mvp-08-profile",
-        "format_id": "insurance-profile-0.8",
-        "envelope_schema_version": 3,
-        "game_schema_version": 5,
-        "config_version": "INS-MVP-0.8",
-        "supported_waves": 5,
-        "once": true,
-        "source_writes": "none"
-      },
-      {
-        "priority": 2,
-        "key": "ins-mvp-07-profile",
-        "format_id": "insurance-profile-0.7",
-        "envelope_schema_version": 2,
-        "game_schema_version": 4,
-        "config_version": "INS-MVP-0.7",
-        "supported_waves": 5,
-        "once": true,
-        "source_writes": "none"
-      },
-      {
-        "priority": 3,
-        "key": "ins-ui-05-profile",
-        "format_id": "insurance-profile-0.5",
-        "envelope_schema_version": 1,
-        "game_schema_version": 3,
-        "config_version": "INS-UI-0.5",
-        "supported_waves": 3,
-        "once": true,
-        "source_writes": "none",
-        "note": "0.6 直连 0.9：跳过 0.7/0.8 时仍可迁移，按同一字段映射"
-      }
-    ],
-    "read_only_history_keys": [
-      "ins-mvp-08-profile",
-      "ins-mvp-07-profile",
-      "ins-ui-05-profile",
-      "ins-d-004-slot-0",
-      "ins-d-004-slot-1",
-      "ins-d-001-slot-0",
-      "ins-d-001-slot-1"
-    ],
-    "legacy_slot_keys": [],
-    "migration": {
-      "preserve": [
-        "profile.premium",
-        "profile.inventory",
-        "profile.profile_id",
-        "profile.action_seq",
-        "run.run_seq",
-        "run.run_id",
-        "run.status",
-        "run.closed_run_seq",
-        "run.items_used",
-        "game"
-      ],
-      "new_fields_initial": {
-        "profile.rebate": 0,
-        "game.diagnostics.rebate_earned": 0,
-        "game.wave_premium_earned": 0,
-        "game.wave_premium_spent": 0,
-        "enemy.root_until_ms": 0
-      },
-      "combat_or_paused_import_phase": "paused",
-      "stamp": {
-        "schema_version": 6,
-        "config_version": "INS-MVP-0.9"
-      },
-      "teaching_done": true,
-      "receipts": "drop_old_receipts_keep_action_seq_highwater",
-      "first_grant_on_migration": 0,
-      "settlement_rebuild": "终局档保留 wave/result/评级；stats 保留 rebate_earned（0.8a 来源）或补 0（0.7/0.6 来源）",
-      "commit": "single_atomic_replace_expected_null_then_readback",
-      "ambiguous_write": "freeze_and_reconcile_no_retry",
-      "after_success": "旧键永不再读"
-    },
-    "legacy_0_4_import_in_0_8": "disabled_already_handled_by_0_6",
-    "corrupt_new_profile": "preserve_raw_block_persistent_play_offer_temp_play_no_fallback_to_0_8_0_7_or_0_6",
-    "emptiness": "0.9/0.8/0.7/0.6 键都不存在才建新档并仅此一次赠 6",
-    "native_combat_load": "exact_committed_snapshot_then_pause",
-    "atomic_unit": "entire_envelope",
-    "commit_each_logic_batch": true,
-    "readback_verification_required": true,
-    "publish_success_after_commit_only": true,
-    "exclusive_writer_required": true,
-    "additional_fields_vs_0_7": [
-      "profile.rebate",
-      "game.diagnostics.rebate_earned",
-      "game.wave_premium_earned",
-      "game.wave_premium_spent",
-      "settlement.stats.rebate_earned"
-    ],
-    "save_size_budget_bytes": 1048576,
-    "new_enemy_field": {
-      "path": "enemy.root_until_ms",
-      "type": "safe_integer",
-      "min": 0,
-      "max": "elapsed_ms + 1200",
-      "default_on_migration": 0,
-      "must_be_zero_outside_combat_or_paused": true
-    },
-    "additional_fields_vs_0_8": [
-      "enemy.root_until_ms",
-      "towers[].equipment_id",
-      "towers[].role",
-      "towers[].root_duration_ms",
-      "economy.buy_cost_by_wave",
-      "economy.move_back"
-    ]
-  },
-  "stun": {
-    "duration_ms": 500,
-    "immunity_after_recovery_ms": 1000,
-    "stacks": false,
-    "refreshes_during_stun_or_immunity": false,
-    "pauses_tower_cooldown": true,
-    "pauses_released_effects": false
-  },
-  "equipment": {
-    "supported_tower_ids": [
-      "construction",
-      "property"
-    ],
-    "enabled_tiers": [
-      "basic"
-    ],
-    "default_tier": "basic",
-    "basic_is_free_implicit": true,
-    "drop_enabled": false,
-    "change_enabled": false,
-    "merge_policy": "same_default_only"
-  },
-  "towers": [
-    {
-      "id": "car_damage",
-      "name": "车损险",
-      "glyph": "车",
-      "attack_period_ms": 2000,
-      "impact_delay_ms": 200,
-      "damage_by_level": [
-        28,
-        42,
-        63
-      ],
-      "radius_cells": 3,
-      "effect": "exploding_car",
-      "slow_ratio": 0,
-      "slow_duration_ms": 0,
-      "equipment_id": null
-    },
-    {
-      "id": "construction",
-      "name": "建筑工程险",
-      "glyph": "建",
-      "attack_period_ms": 2400,
-      "impact_delay_ms": 400,
-      "damage_by_level": [
-        14,
-        21,
-        32
-      ],
-      "radius_cells": 3.5,
-      "effect": "slope_impact",
-      "slow_ratio": 0.4,
-      "slow_duration_ms": 2000,
-      "equipment_id": "basic"
-    },
-    {
-      "id": "property",
-      "name": "财产险",
-      "glyph": "财",
-      "attack_period_ms": 3000,
-      "impact_delay_ms": 200,
-      "damage_by_level": [
-        5,
-        8,
-        12
-      ],
-      "radius_cells": 2.5,
-      "effect": "fire_zone",
-      "zone_duration_ms": 3000,
-      "zone_tick_ms": 500,
-      "max_zones_per_source": 1,
-      "slow_ratio": 0,
-      "slow_duration_ms": 0,
-      "equipment_id": "basic"
-    },
-    {
-      "id": "machine_damage",
-      "name": "机器损坏险",
-      "glyph": "机",
-      "attack_period_ms": 1800,
-      "impact_delay_ms": 150,
-      "damage_by_level": [
-        24,
-        36,
-        54
-      ],
-      "radius_cells": 1.2,
-      "effect": "overload",
-      "slow_ratio": 0,
-      "slow_duration_ms": 0,
-      "equipment_id": null,
-      "role": "短射程高单体爆发"
-    },
-    {
-      "id": "liability",
-      "name": "责任险",
-      "glyph": "责",
-      "attack_period_ms": 2800,
-      "impact_delay_ms": 300,
-      "damage_by_level": [
-        6,
-        9,
-        14
-      ],
-      "radius_cells": 3,
-      "effect": "intercept",
-      "root_duration_ms": 800,
-      "slow_ratio": 0,
-      "slow_duration_ms": 0,
-      "equipment_id": null,
-      "role": "小范围伤害+拦截（定责锁）"
-    },
-    {
-      "id": "marine",
-      "name": "船舶险",
-      "glyph": "船",
-      "attack_period_ms": 3400,
-      "impact_delay_ms": 450,
-      "damage_by_level": [
-        22,
-        33,
-        50
-      ],
-      "radius_cells": 4,
-      "effect": "tidal_wave",
-      "slow_ratio": 0,
-      "slow_duration_ms": 0,
-      "equipment_id": null,
-      "role": "全图最远射程大范围水波"
-    }
-  ],
-  "enemies": [
-    {
-      "id": "third_party_car",
-      "name": "三者车主",
-      "hp": 60,
-      "speed": 6,
-      "leak_damage": 15,
-      "attack_range_cells": 1.4,
-      "attack_windup_ms": 350,
-      "attack_cooldown_ms": 2500,
-      "attack_effect": "ram_and_stun",
-      "tower_hp_damage": 0
-    },
-    {
-      "id": "foreman",
-      "name": "工地佬",
-      "hp": 90,
-      "speed": 4,
-      "leak_damage": 20,
-      "attack_range_cells": 1.8,
-      "attack_windup_ms": 600,
-      "attack_cooldown_ms": 3000,
-      "attack_effect": "brick_and_stun",
-      "tower_hp_damage": 0
-    }
-  ],
-  "waves": [
-    {
-      "id": 1,
-      "enemy_hp_multiplier": 1,
-      "enemy_speed_multiplier": 1,
-      "spawns": [
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 1800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3600,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 5400,
-          "enemy": "third_party_car"
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "enemy_hp_multiplier": 2.4,
-      "enemy_speed_multiplier": 1.12,
-      "spawns": [
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 900,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 1800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 2700,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 4500,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 5400,
-          "enemy": "third_party_car"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "enemy_hp_multiplier": 5.2,
-      "enemy_speed_multiplier": 1.28,
-      "spawns": [
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 900,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 1600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 1600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 2400,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 4000,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 4000,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 4800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 5600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 6400,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 7200,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 8000,
-          "enemy": "third_party_car"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "enemy_hp_multiplier": 7,
-      "enemy_speed_multiplier": 1.36,
-      "spawns": [
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 0,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 1600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 2400,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 4000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 4800,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 4800,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 5600,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 6400,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 6400,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 7200,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 7200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 8000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 8000,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 8400,
-          "enemy": "third_party_car"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "enemy_hp_multiplier": 5.6,
-      "enemy_speed_multiplier": 1.34,
-      "spawns": [
-        {
-          "at_ms": 0,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 0,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 600,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 1200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 1200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 2000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 2600,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 3200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 4000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 4600,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 5200,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 5600,
-          "enemy": "foreman"
-        },
-        {
-          "at_ms": 6000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 6400,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 7000,
-          "enemy": "third_party_car"
-        },
-        {
-          "at_ms": 7400,
-          "enemy": "foreman"
-        }
-      ]
-    }
-  ],
-  "rating": {
-    "enabled": true,
-    "applies_to": [
-      "victory"
-    ],
-    "basis": "game.core_hp",
-    "thresholds": [
-      {
-        "grade": "S",
-        "label": "零漏件",
-        "min_hp": 100,
-        "max_hp": 100
-      },
-      {
-        "grade": "A",
-        "label": "稳妥",
-        "min_hp": 76,
-        "max_hp": 99
-      },
-      {
-        "grade": "B",
-        "label": "理清",
-        "min_hp": 41,
-        "max_hp": 75
-      },
-      {
-        "grade": "C",
-        "label": "收尾",
-        "min_hp": 1,
-        "max_hp": 40
-      }
-    ],
-    "defeat": {
-      "rating": null,
-      "label": "失守"
-    },
-    "grants_premium": false,
-    "grant_note": "评级只用于结案展示，不改变保费、返利、库存与奖励",
-    "stored_in": "game.settlement.rating",
-    "display_in": [
-      "terminal_overlay"
-    ]
-  },
-  "settlement": {
-    "fields": [
-      "wave",
-      "result",
-      "rating",
-      "stats"
-    ],
-    "stats": [
-      "kills",
-      "leaks",
-      "waves_cleared",
-      "premium_earned",
-      "rebate_earned"
-    ],
-    "balance_from": "profile.premium",
-    "rebate_from": "profile.rebate",
-    "no_terminal_bonus": true,
-    "buttons": [
-      "免费开始下一局",
-      "结案 · 营销部",
-      "先看看现场"
-    ],
-    "defeat_buttons": [
-      "重新挑战",
-      "结案 · 营销部",
-      "先看看现场"
-    ]
-  },
-  "teaching": {
-    "enabled": true,
-    "first_run_only": true,
-    "persist_flag": "profile.teaching_done",
-    "steps": [
-      {
-        "id": "buy-offer",
-        "text": "点一份可选条款，先收进待启用栏",
-        "highlight": "offers"
-      },
-      {
-        "id": "place-card",
-        "text": "点待启用条款，再点亮起的办公位",
-        "highlight": "office"
-      },
-      {
-        "id": "start-wave",
-        "text": "准备好了，点下方主按钮开始",
-        "highlight": "start-button"
-      }
-    ],
-    "skippable": true,
-    "blocks_input": false,
-    "writes_on_complete_or_skip": true,
-    "not_in_replay": "已 teaching_done 的老档与已通过首局的新档不再显示"
-  },
-  "presentation": {
-    "wave_preview": "off",
-    "wave_preview_allowed_values": [
-      "off"
-    ],
-    "glyph_primary": {
-      "unit": {
-        "font_px": 24,
-        "min_px": 20,
-        "max_px": 28
-      },
-      "hand_card": {
-        "font_px": 26,
-        "min_px": 20,
-        "max_px": 30
-      },
-      "offer_card": {
-        "font_px": 24,
-        "min_px": 19,
-        "max_px": 27
-      },
-      "badge_px": {
-        "card": 16,
-        "unit": 18,
-        "min": 16,
-        "max": 20
-      },
-      "badge_position": {
-        "card": "bottom-left",
-        "unit": "bottom-left"
-      },
-      "glyph_position": {
-        "card": "center",
-        "unit": "center"
-      },
-      "name_text": "keep_below_glyph_8_5px"
-    },
-    "enemy_stack": {
-      "mode": "path_offset",
-      "window_progress": 7000,
-      "offset_progress": 1400,
-      "max_display_progress": 99900,
-      "shrink_when_clustered": true,
-      "horizontal_px_offset": 0,
-      "all_centers_must_stay_on_path": true
-    },
-    "visual_cap": 60,
-    "effect_cap": 40,
-    "flash_ms": 80,
-    "damage_float_ms": 700,
-    "reward_float_ms": 900,
-    "wave_banner_ms": 900,
-    "leak_flash_ms": 200,
-    "shake_px": 3,
-    "shake_ms": 120,
-    "shake_optional": true,
-    "respect_reduced_motion": true,
-    "fx_list": [
-      "car-shot",
-      "rock-shot",
-      "flame-shot",
-      "machine-shot",
-      "seal-shot",
-      "wave-shot",
-      "car-blast",
-      "rock-impact",
-      "fire-zone",
-      "fire-pulse",
-      "machine-blast",
-      "seal-blast",
-      "wave-blast",
-      "point-reward",
-      "hit-flash",
-      "damage-float",
-      "wave-banner",
-      "leak-flash",
-      "item-zero",
-      "item-reject",
-      "item-shield",
-      "intercept-lock"
-    ],
-    "effect_visual_map": {
-      "exploding_car": {
-        "shot": "car-shot",
-        "impact": "car-blast"
-      },
-      "slope_impact": {
-        "shot": "rock-shot",
-        "impact": "rock-impact"
-      },
-      "fire_zone": {
-        "shot": "flame-shot",
-        "impact": "fire-zone"
-      },
-      "overload": {
-        "shot": "machine-shot",
-        "impact": "machine-blast"
-      },
-      "intercept": {
-        "shot": "seal-shot",
-        "impact": "seal-blast"
-      },
-      "tidal_wave": {
-        "shot": "wave-shot",
-        "impact": "wave-blast"
-      },
-      "root_state": "intercept-lock"
-    }
-  },
-  "performance": {
-    "long_frame_ms": 100,
-    "long_frames_budget_per_10s": 2,
-    "max_enemies_on_board": 40,
-    "save_each_logic_batch": true,
-    "empty_write": false,
-    "single_write_per_batch": true,
-    "save_size_budget_bytes": 1048576,
-    "render_dirty_only": true,
-    "single_raf_loop": true,
-    "audio": "none_in_mvp"
-  },
-  "platform": {
-    "primary": "h5_browser",
-    "local_port": 8020,
-    "local_serve": "cd 游戏/保险词牌原型-0.8 && python -m http.server 8020",
-    "browser_baseline": {
-      "chrome_edge_min": 123,
-      "safari_ios_min": 17.2,
-      "firefox_min": 138,
-      "feature": "import attributes with { type: \"json\" }",
-      "fallback": "仅显示升级提示，不做 fetch 重写"
-    },
-    "github_pages": {
-      "publish_dir": "docs",
-      "workflow": ".github/workflows/pages.yml",
-      "nojekyll": true,
-      "base": "relative",
-      "build_required": false,
-      "push": "needs_user_remote_and_credentials"
-    },
-    "wechat_minigame": {
-      "decision": "not_in_this_round",
-      "reason": "DOM/CSS 无法在小游戏运行；需 Canvas 2D 重写渲染层、触摸事件、wx 存储适配，SVG 素材需转位图雪碧图",
-      "estimate_person_days": [
-        3,
-        7
-      ],
-      "reusable": "core.js 为纯逻辑无 DOM，可复用",
-      "prerequisite": "H5 验收后另立任务，先做 1 天技术验证",
-      "not_verified": [
-        "微信开发者工具",
-        "真机触摸",
-        "iOS 安全区",
-        "系统楷体回退"
-      ]
-    }
-  },
-  "balance_targets": {
-    "naive_strategy": "默认资源：首赠 6，第 1 波价 2 时买 2–3 份、六种免费牌布置并至少合成 3 次，之后不追加大额购买；允许用一次返利道具",
-    "naive_expected_loss_hp": [
-      40,
-      80
-    ],
-    "naive_must_win": true,
-    "optimized_strategy": "每波布防继续买/合（注意价格 2→6），第 4 波前形成 4–6 个三级或等价混编，关键波用道具",
-    "optimized_expected": "0 漏件 S，且不需要靠随机运气",
-    "tuning_rule": "数值已冻结；实测偏离目标区间时，02/04 报 00 由 01 出 0.8a 差量，不得自行调数",
-    "no_merge_must_fail_wave": [
-      4,
-      5
-    ],
-    "new_towers_balance_note": "三新险（尤其责任险拦截）与价格随波会改变难度；D07 只以 0.8a 三组脚本记录实测，若朴素组 0 漏 S 或失守，走 0.9a 差量，不在本轮改波形",
-    "price_tightness_note": "价格 2/3/4/5/6 会让后期追加购买更贵，预期鼓励第 1–2 波早买；不改变任何单价以外的规则"
-  },
-  "enemy_card": {
-    "style": "hand_drawn_paper_token",
-    "big_glyph": {
-      "third_party_car": "贼",
-      "foreman": "兵"
-    },
-    "name_unchanged": {
-      "third_party_car": "三者车主",
-      "foreman": "工地佬"
-    },
-    "paper": "#fdf6e6",
-    "ink": "#33281d",
-    "cinnabar": "#b23a2b",
-    "seal": {
-      "third_party_car": "#b23a2b",
-      "foreman": "#4f5b3f"
-    },
-    "border_px": 2,
-    "radius_px": 3,
-    "glyph_px": {
-      "normal": 22,
-      "min": 20,
-      "max": 24,
-      "clustered": 18
-    },
-    "small_icon_px": {
-      "normal": 14,
-      "min": 12,
-      "max": 16
-    },
-    "small_icon_source": "assets/0.7/enemy-third-party-car.svg / enemy-foreman.svg（复用，缩为 12–16px）",
-    "hp_bar": "单条连续红条 3px + 当前/最大数值 8–9px",
-    "token_svg": {
-      "third_party_car": "enemy-token-thief.svg",
-      "foreman": "enemy-token-soldier.svg"
-    },
-    "distinguish": "大字 + 小图标 + 朱砂/墨绿角标三通道，不只靠颜色"
-  },
-  "patch": {
-    "patch_id": "INS-MVP-0.9",
-    "base_version": "INS-MVP-0.8a",
-    "base_config_path": "协作/策划/MVP-0.8a配置.json",
-    "base_config_sha256": "6D2174B4BD86503316B806D07932F6A255703966D880CBAEDA811B3FC15F3765",
-    "changes": [
-      "towers（+3 险种与 equipment_id/role/root_duration_ms）",
-      "economy.buy_cost_by_wave/basis/legacy_fallback",
-      "economy.move_back",
-      "economy.initial_hand/offer_pool/offer_weights",
-      "persistence（schema 6/envelope 4/新键/迁移链）",
-      "enemy.root_until_ms",
-      "presentation.enemy_card/effect_visual_map/fx_list",
-      "content_scope/classification/balance_targets"
-    ],
-    "unchanged": [
-      "waves（沿用 0.8a）",
-      "enemies 基础属性",
-      "shop 价格/返利公式",
-      "profile.first_grant",
-      "salvage",
-      "rating",
-      "settlement",
-      "teaching",
-      "platform",
-      "performance",
-      "stun",
-      "simulation",
-      "board",
-      "formation"
-    ],
-    "config_version": "INS-MVP-0.9",
-    "save_compat": "config_version 变化 → 0.8a 存档经一次性迁移；0.8a 工程与其键保持可用"
-  }
+    "schema_version":  6,
+    "config_version":  "INS-MVP-0.9",
+    "classification":  "INS-MVP-0.9c Boss 难度差量（仅 Boss 数值）：0.9b G4 实测朴素组第 5 波失守（0.9a 为胜利掉血 60），原因是 Boss 单点 HP 偏高且漏件伤害 30/40 放大回归。本差量只调两 Boss：工地佬·大案 1260→900 HP、漏伤 30→20；船佬·大案 1512→1000 HP、漏伤 40→25；攻击/速度、普通敌、波次数量与普通敌 HP、价格、六险、绷带、UI、存档全部不动。目标：朴素胜利掉血 40–80、6×L1 仍第 4 波失守、优化 0 漏 S。config_version 仍 INS-MVP-0.9。",
+    "content_scope":  {
+                          "waves":  5,
+                          "enemies":  4,
+                          "towers":  6,
+                          "boss":  false,
+                          "new_enemy_types":  0,
+                          "maps":  1,
+                          "base_wave_1_unchanged":  true,
+                          "waves_2_to_5_retuned":  true,
+                          "new_assets_p0":  0,
+                          "optional_assets_p1":  [
+                                                     "badge-car-damage.svg",
+                                                     "badge-construction.svg",
+                                                     "badge-property.svg"
+                                                 ],
+                          "removed_from_0_7a":  [
+                                                    "waves[].preview（波次预告文案）",
+                                                    "布防精确情报/模糊提示",
+                                                    "购买即落位路径"
+                                                ],
+                          "difficulty_retune_0_8a":  true,
+                          "waves_0_8a":  "4/7/16/19/22；HP ×1/2.4/5.2/7.0/7.6；速度 ×1/1.12/1.28/1.36/1.44",
+                          "new_tower_types":  3,
+                          "tower_ids":  [
+                                            "car_damage",
+                                            "construction",
+                                            "property",
+                                            "machine_damage",
+                                            "liability",
+                                            "marine"
+                                        ],
+                          "new_p0_assets":  [
+                                                "unit-machine-damage.svg",
+                                                "unit-liability.svg",
+                                                "unit-marine.svg",
+                                                "enemy-token-thief.svg",
+                                                "enemy-token-soldier.svg"
+                                            ],
+                          "changes_0_9":  [
+                                              "formation-\u003ehand 拖回",
+                                              "buy_cost_by_wave",
+                                              "三新险种",
+                                              "敌人卡面",
+                                              "schema 6/envelope 4/key ins-mvp-09-profile"
+                                          ],
+                          "difficulty_retune_0_9a":  true,
+                          "waves_0_9a":  "4/7/16/19/18；HP ×1/2.4/5.2/7.0/5.6；速度 ×1/1.12/1.28/1.36/1.34（仅第 5 波变化）",
+                          "difficulty_only_delta":  true,
+                          "boss_enemies":  2,
+                          "enemy_roster":  {
+                                               "third_party_car":  "客户（基础小兵/小案；保留 ID 兼容 0.7–0.9a 存档，仅显示名改为客户）",
+                                               "foreman":  "工地佬（精英/小案）",
+                                               "foreman_boss":  "工地佬（大案/Boss，砖块眩晕强化）",
+                                               "ship_owner":  "船佬（大案/Boss，船头撞击+喊叫表现）"
+                                           },
+                          "changes_0_9b":  [
+                                               "敌名册/卡面全名+小案大案标签",
+                                               "Boss 横幅与数值",
+                                               "责任险绷带+人伤",
+                                               "第4/5波 Boss 等量替换"
+                                           ],
+                          "boss_retune_0_9c":  "仅 Boss：he·900/漏20、ship·1000/漏25，绝对 HP（hp_scaling=flat，不再乘波次倍率）"
+                      },
+    "simulation":  {
+                       "tick_ms":  50,
+                       "path_length":  100,
+                       "default_seed":  20261020,
+                       "rng":  "xorshift32_nonzero_unsigned",
+                       "max_catchup_ticks_per_frame":  10
+                   },
+    "board":  {
+                  "columns":  8,
+                  "rows":  10,
+                  "path":  [
+                               [
+                                   7,
+                                   0
+                               ],
+                               [
+                                   7,
+                                   1
+                               ],
+                               [
+                                   7,
+                                   2
+                               ],
+                               [
+                                   7,
+                                   3
+                               ],
+                               [
+                                   6,
+                                   3
+                               ],
+                               [
+                                   5,
+                                   3
+                               ],
+                               [
+                                   4,
+                                   3
+                               ],
+                               [
+                                   3,
+                                   3
+                               ],
+                               [
+                                   2,
+                                   3
+                               ],
+                               [
+                                   1,
+                                   3
+                               ],
+                               [
+                                   0,
+                                   3
+                               ],
+                               [
+                                   0,
+                                   4
+                               ],
+                               [
+                                   0,
+                                   5
+                               ],
+                               [
+                                   0,
+                                   6
+                               ],
+                               [
+                                   1,
+                                   6
+                               ],
+                               [
+                                   2,
+                                   6
+                               ],
+                               [
+                                   3,
+                                   6
+                               ],
+                               [
+                                   4,
+                                   6
+                               ],
+                               [
+                                   5,
+                                   6
+                               ],
+                               [
+                                   6,
+                                   6
+                               ],
+                               [
+                                   7,
+                                   6
+                               ],
+                               [
+                                   7,
+                                   7
+                               ],
+                               [
+                                   7,
+                                   8
+                               ],
+                               [
+                                   7,
+                                   9
+                               ]
+                           ],
+                  "office_positions":  [
+                                           [
+                                               2,
+                                               2
+                                           ],
+                                           [
+                                               4,
+                                               2
+                                           ],
+                                           [
+                                               6,
+                                               2
+                                           ],
+                                           [
+                                               2,
+                                               5
+                                           ],
+                                           [
+                                               4,
+                                               5
+                                           ],
+                                           [
+                                               6,
+                                               5
+                                           ]
+                                       ],
+                  "inspector_position":  [
+                                             7,
+                                             9
+                                         ],
+                  "entry_position":  [
+                                         7,
+                                         0
+                                     ],
+                  "exit_position":  [
+                                        7,
+                                        9
+                                    ],
+                  "layout_unchanged_from_0_5":  true
+              },
+    "formation":  {
+                      "base_hp":  100,
+                      "base_takes_leak_only":  true,
+                      "tower_permanent_death":  false
+                  },
+    "economy":  {
+                    "resource_label":  "保费",
+                    "wave_clear_reward":  6,
+                    "hand_capacity":  8,
+                    "offer_count":  3,
+                    "offer_level":  1,
+                    "buy_cost":  2,
+                    "buy_target":  "hand",
+                    "buy_requires_empty_hand_slot":  true,
+                    "buy_auto_place":  false,
+                    "deploy_cost":  0,
+                    "merge_cost":  0,
+                    "move_cost":  0,
+                    "withdraw_cost":  0,
+                    "free_refresh_per_prep":  1,
+                    "paid_refresh_cost":  1,
+                    "salvage_refund_by_level":  [
+                                                    1,
+                                                    2,
+                                                    4
+                                                ],
+                    "max_level":  3,
+                    "initial_hand":  [
+                                         "car_damage",
+                                         "construction",
+                                         "property",
+                                         "machine_damage",
+                                         "liability",
+                                         "marine"
+                                     ],
+                    "initial_offers":  [
+                                           "car_damage",
+                                           "construction",
+                                           "property"
+                                       ],
+                    "offer_pool":  [
+                                       "car_damage",
+                                       "construction",
+                                       "property",
+                                       "machine_damage",
+                                       "liability",
+                                       "marine"
+                                   ],
+                    "offer_weights":  [
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1
+                                      ],
+                    "prices_unchanged_from_0_5":  true,
+                    "first_grant_unchanged":  true,
+                    "full_clear_premium_theory":  90,
+                    "premium_theory_note":  "60 个来件×1 + 5 波×6 = 90；不含首次赠送 6。Boss 与普通来件同按击杀 +1，波次总 HP 与 0.9a 相同（Boss 为等量替换），奖励规则未改。",
+                    "rebate":  {
+                                   "enabled":  true,
+                                   "label":  "返利",
+                                   "authoritative_path":  "profile.rebate",
+                                   "rate":  0.10,
+                                   "base":  "current_premium",
+                                   "base_options":  [
+                                                        "current_premium",
+                                                        "wave_earned",
+                                                        "wave_spent"
+                                                    ],
+                                   "rounding":  "floor",
+                                   "trigger":  "wave_clear",
+                                   "include_final_wave":  true,
+                                   "grant_on_defeat_or_abandon":  false,
+                                   "dedupe":  "cleared_wave_ids",
+                                   "cap_path":  "profile.premium_cap",
+                                   "persists_across_runs":  true,
+                                   "spend":  "shop_only",
+                                   "migration_initial":  0,
+                                   "same_batch_as_premium_reward":  true,
+                                   "formula":  {
+                                                   "current_premium":  "floor(profile.premium_after_wave_clear_reward * rate)",
+                                                   "wave_earned":  "floor(game.wave_premium_earned * rate)",
+                                                   "wave_spent":  "floor(game.wave_premium_spent * rate)"
+                                               },
+                                   "examples":  [
+                                                    {
+                                                        "case":  "朴素全清、每波不追加购买",
+                                                        "premium_after_each_wave":  [
+                                                                                        10,
+                                                                                        23,
+                                                                                        45,
+                                                                                        69,
+                                                                                        90
+                                                                                    ],
+                                                        "rebate_each_wave":  [
+                                                                                 1,
+                                                                                 2,
+                                                                                 4,
+                                                                                 6,
+                                                                                 9
+                                                                             ],
+                                                        "rebate_total":  22
+                                                    },
+                                                    {
+                                                        "case":  "第 2 波前花 6 买 3 份条款",
+                                                        "premium_after_wave1":  4,
+                                                        "rebate_wave1":  0,
+                                                        "note":  "基数用当前保费，花得越多返利越少"
+                                                    }
+                                                ]
+                               },
+                    "buy_cost_by_wave":  [
+                                             2,
+                                             3,
+                                             4,
+                                             5,
+                                             6
+                                         ],
+                    "buy_cost_basis":  "current_wave",
+                    "buy_cost_legacy_fallback":  2,
+                    "move_back":  {
+                                      "enabled":  true,
+                                      "from":  "formation",
+                                      "to":  "hand_empty_slot",
+                                      "cost":  0,
+                                      "phases":  [
+                                                     "prep"
+                                                 ],
+                                      "reject_when_hand_full":  true,
+                                      "copies_card":  false,
+                                      "keeps_level_and_salvage":  true,
+                                      "merge_from_formation":  false
+                                  },
+                    "offer_pool_note":  "六险种等权 1:1:1:1:1:1，每个 1/6；初始手牌为六种各 1，初始三份可选条款仍是车/建/财（回归基线）"
+                },
+    "profile":  {
+                    "first_grant":  6,
+                    "premium_cap":  9007199254740991,
+                    "rebate_cap":  9007199254740991,
+                    "inventory_cap_per_item":  3,
+                    "receipt_limit":  128,
+                    "teaching_flag_path":  "profile.teaching_done",
+                    "rebate_path":  "profile.rebate"
+                },
+    "shop":  {
+                 "label":  "营销部",
+                 "currency":  "rebate",
+                 "currency_label":  "返利",
+                 "zero_settlement_price":  24,
+                 "deny_claim_price":  10,
+                 "outside_liability_price":  6,
+                 "prices_unit":  "rebate",
+                 "open_phases":  [
+                                     "victory",
+                                     "defeat"
+                                 ],
+                 "purchase_phases":  [
+                                         "victory",
+                                         "defeat"
+                                     ],
+                 "purchase_requires_terminal":  true,
+                 "cover_entry":  "disabled_with_reason",
+                 "combat_entry":  "disabled_with_reason",
+                 "terminal_entry":  "enabled",
+                 "entry_disabled_text":  "结案后开放",
+                 "visible_reason_required":  true,
+                 "inventory_cap":  3,
+                 "persists_across_runs":  true,
+                 "uses_premium":  false
+             },
+    "salvage":  {
+                    "refund_cap_by_level":  [
+                                                1,
+                                                2,
+                                                4
+                                            ],
+                    "free_card_credit":  0,
+                    "purchased_level_one_credit":  1,
+                    "legacy_credit":  0
+                },
+    "items":  {
+                  "zero_settlement":  {
+                                          "id":  "zero_settlement",
+                                          "name":  "零结",
+                                          "duration_ms":  700,
+                                          "max_active_enemies_in_one_wave":  15,
+                                          "not_profitable_alone_check":  "第 5 波 15 活敌×1+守波6=21 \u003c 价格 24，零结仍不划算；价格按派工不动"
+                                      },
+                  "deny_claim":  {
+                                     "id":  "deny_claim",
+                                     "name":  "拒赔",
+                                     "duration_ms":  700
+                                 },
+                  "outside_liability":  {
+                                            "id":  "outside_liability",
+                                            "name":  "不属责",
+                                            "duration_ms":  3000,
+                                            "duration_ticks":  60
+                                        }
+              },
+    "persistence":  {
+                        "format_id":  "insurance-profile-0.9",
+                        "envelope_schema_version":  4,
+                        "game_schema_version":  6,
+                        "authoritative_key":  "ins-mvp-09-profile",
+                        "import_from":  [
+                                            {
+                                                "priority":  1,
+                                                "key":  "ins-mvp-08-profile",
+                                                "format_id":  "insurance-profile-0.8",
+                                                "envelope_schema_version":  3,
+                                                "game_schema_version":  5,
+                                                "config_version":  "INS-MVP-0.8",
+                                                "supported_waves":  5,
+                                                "once":  true,
+                                                "source_writes":  "none"
+                                            },
+                                            {
+                                                "priority":  2,
+                                                "key":  "ins-mvp-07-profile",
+                                                "format_id":  "insurance-profile-0.7",
+                                                "envelope_schema_version":  2,
+                                                "game_schema_version":  4,
+                                                "config_version":  "INS-MVP-0.7",
+                                                "supported_waves":  5,
+                                                "once":  true,
+                                                "source_writes":  "none"
+                                            },
+                                            {
+                                                "priority":  3,
+                                                "key":  "ins-ui-05-profile",
+                                                "format_id":  "insurance-profile-0.5",
+                                                "envelope_schema_version":  1,
+                                                "game_schema_version":  3,
+                                                "config_version":  "INS-UI-0.5",
+                                                "supported_waves":  3,
+                                                "once":  true,
+                                                "source_writes":  "none",
+                                                "note":  "0.6 直连 0.9：跳过 0.7/0.8 时仍可迁移，按同一字段映射"
+                                            }
+                                        ],
+                        "read_only_history_keys":  [
+                                                       "ins-mvp-08-profile",
+                                                       "ins-mvp-07-profile",
+                                                       "ins-ui-05-profile",
+                                                       "ins-d-004-slot-0",
+                                                       "ins-d-004-slot-1",
+                                                       "ins-d-001-slot-0",
+                                                       "ins-d-001-slot-1"
+                                                   ],
+                        "legacy_slot_keys":  [
+
+                                             ],
+                        "migration":  {
+                                          "preserve":  [
+                                                           "profile.premium",
+                                                           "profile.inventory",
+                                                           "profile.profile_id",
+                                                           "profile.action_seq",
+                                                           "run.run_seq",
+                                                           "run.run_id",
+                                                           "run.status",
+                                                           "run.closed_run_seq",
+                                                           "run.items_used",
+                                                           "game"
+                                                       ],
+                                          "new_fields_initial":  {
+                                                                     "profile.rebate":  0,
+                                                                     "game.diagnostics.rebate_earned":  0,
+                                                                     "game.wave_premium_earned":  0,
+                                                                     "game.wave_premium_spent":  0,
+                                                                     "enemy.root_until_ms":  0
+                                                                 },
+                                          "combat_or_paused_import_phase":  "paused",
+                                          "stamp":  {
+                                                        "schema_version":  6,
+                                                        "config_version":  "INS-MVP-0.9"
+                                                    },
+                                          "teaching_done":  true,
+                                          "receipts":  "drop_old_receipts_keep_action_seq_highwater",
+                                          "first_grant_on_migration":  0,
+                                          "settlement_rebuild":  "终局档保留 wave/result/评级；stats 保留 rebate_earned（0.8a 来源）或补 0（0.7/0.6 来源）",
+                                          "commit":  "single_atomic_replace_expected_null_then_readback",
+                                          "ambiguous_write":  "freeze_and_reconcile_no_retry",
+                                          "after_success":  "旧键永不再读"
+                                      },
+                        "legacy_0_4_import_in_0_8":  "disabled_already_handled_by_0_6",
+                        "corrupt_new_profile":  "preserve_raw_block_persistent_play_offer_temp_play_no_fallback_to_0_8_0_7_or_0_6",
+                        "emptiness":  "0.9/0.8/0.7/0.6 键都不存在才建新档并仅此一次赠 6",
+                        "native_combat_load":  "exact_committed_snapshot_then_pause",
+                        "atomic_unit":  "entire_envelope",
+                        "commit_each_logic_batch":  true,
+                        "readback_verification_required":  true,
+                        "publish_success_after_commit_only":  true,
+                        "exclusive_writer_required":  true,
+                        "additional_fields_vs_0_7":  [
+                                                         "profile.rebate",
+                                                         "game.diagnostics.rebate_earned",
+                                                         "game.wave_premium_earned",
+                                                         "game.wave_premium_spent",
+                                                         "settlement.stats.rebate_earned"
+                                                     ],
+                        "save_size_budget_bytes":  1048576,
+                        "new_enemy_field":  {
+                                                "path":  "enemy.root_until_ms",
+                                                "type":  "safe_integer",
+                                                "min":  0,
+                                                "max":  "elapsed_ms + 1200",
+                                                "default_on_migration":  0,
+                                                "must_be_zero_outside_combat_or_paused":  true
+                                            },
+                        "additional_fields_vs_0_8":  [
+                                                         "enemy.root_until_ms",
+                                                         "towers[].equipment_id",
+                                                         "towers[].role",
+                                                         "towers[].root_duration_ms",
+                                                         "economy.buy_cost_by_wave",
+                                                         "economy.move_back"
+                                                     ],
+                        "version_policy":  {
+                                               "config_version_kept":  "INS-MVP-0.9",
+                                               "game_schema_version":  6,
+                                               "envelope_schema_version":  4,
+                                               "authoritative_key":  "ins-mvp-09-profile",
+                                               "new_save_fields":  [
+
+                                                                   ],
+                                               "migration_required":  false,
+                                               "reason":  "Boss 由敌种 ID 派生，绷带复用 enemy.root_until_ms，人伤为配置静态标记；0.9/0.9a 存档直接可读，无需新档/新键"
+                                           }
+                    },
+    "stun":  {
+                 "duration_ms":  500,
+                 "immunity_after_recovery_ms":  1000,
+                 "stacks":  false,
+                 "refreshes_during_stun_or_immunity":  false,
+                 "pauses_tower_cooldown":  true,
+                 "pauses_released_effects":  false
+             },
+    "equipment":  {
+                      "supported_tower_ids":  [
+                                                  "construction",
+                                                  "property"
+                                              ],
+                      "enabled_tiers":  [
+                                            "basic"
+                                        ],
+                      "default_tier":  "basic",
+                      "basic_is_free_implicit":  true,
+                      "drop_enabled":  false,
+                      "change_enabled":  false,
+                      "merge_policy":  "same_default_only"
+                  },
+    "towers":  [
+                   {
+                       "id":  "car_damage",
+                       "name":  "车损险",
+                       "glyph":  "车",
+                       "attack_period_ms":  2000,
+                       "impact_delay_ms":  200,
+                       "damage_by_level":  [
+                                               28,
+                                               42,
+                                               63
+                                           ],
+                       "radius_cells":  3,
+                       "effect":  "exploding_car",
+                       "slow_ratio":  0,
+                       "slow_duration_ms":  0,
+                       "equipment_id":  null
+                   },
+                   {
+                       "id":  "construction",
+                       "name":  "建筑工程险",
+                       "glyph":  "建",
+                       "attack_period_ms":  2400,
+                       "impact_delay_ms":  400,
+                       "damage_by_level":  [
+                                               14,
+                                               21,
+                                               32
+                                           ],
+                       "radius_cells":  3.5,
+                       "effect":  "slope_impact",
+                       "slow_ratio":  0.4,
+                       "slow_duration_ms":  2000,
+                       "equipment_id":  "basic"
+                   },
+                   {
+                       "id":  "property",
+                       "name":  "财产险",
+                       "glyph":  "财",
+                       "attack_period_ms":  3000,
+                       "impact_delay_ms":  200,
+                       "damage_by_level":  [
+                                               5,
+                                               8,
+                                               12
+                                           ],
+                       "radius_cells":  2.5,
+                       "effect":  "fire_zone",
+                       "zone_duration_ms":  3000,
+                       "zone_tick_ms":  500,
+                       "max_zones_per_source":  1,
+                       "slow_ratio":  0,
+                       "slow_duration_ms":  0,
+                       "equipment_id":  "basic"
+                   },
+                   {
+                       "id":  "machine_damage",
+                       "name":  "机器损坏险",
+                       "glyph":  "机",
+                       "attack_period_ms":  1800,
+                       "impact_delay_ms":  150,
+                       "damage_by_level":  [
+                                               24,
+                                               36,
+                                               54
+                                           ],
+                       "radius_cells":  1.2,
+                       "effect":  "overload",
+                       "slow_ratio":  0,
+                       "slow_duration_ms":  0,
+                       "equipment_id":  null,
+                       "role":  "短射程高单体爆发"
+                   },
+                   {
+                       "id":  "liability",
+                       "name":  "责任险",
+                       "glyph":  "责",
+                       "attack_period_ms":  2800,
+                       "impact_delay_ms":  300,
+                       "damage_by_level":  [
+                                               6,
+                                               9,
+                                               14
+                                           ],
+                       "radius_cells":  3,
+                       "effect":  "intercept",
+                       "root_duration_ms":  800,
+                       "slow_ratio":  0,
+                       "slow_duration_ms":  0,
+                       "equipment_id":  null,
+                       "human_injury_multiplier":  1.5,
+                       "human_injury_target":  "third_party_car",
+                       "effect_visual":  "bandage",
+                       "bandage_root_ms":  800,
+                       "role":  "小范围伤害+人伤绷带定身（客户 1.5 倍）"
+                   },
+                   {
+                       "id":  "marine",
+                       "name":  "船舶险",
+                       "glyph":  "船",
+                       "attack_period_ms":  3400,
+                       "impact_delay_ms":  450,
+                       "damage_by_level":  [
+                                               22,
+                                               33,
+                                               50
+                                           ],
+                       "radius_cells":  4,
+                       "effect":  "tidal_wave",
+                       "slow_ratio":  0,
+                       "slow_duration_ms":  0,
+                       "equipment_id":  null,
+                       "role":  "全图最远射程大范围水波"
+                   }
+               ],
+    "enemies":  [
+                    {
+                        "id":  "third_party_car",
+                        "name":  "客户",
+                        "tier":  "small",
+                        "human_injury":  true,
+                        "legacy_id_note":  "保留 ID 以兼容 0.7–0.9a 存档，仅显示名改为客户",
+                        "hp":  60,
+                        "speed":  6,
+                        "leak_damage":  15,
+                        "attack_range_cells":  1.4,
+                        "attack_windup_ms":  350,
+                        "attack_cooldown_ms":  2500,
+                        "attack_effect":  "ram_and_stun",
+                        "tower_hp_damage":  0,
+                        "call_interval_ms":  0
+                    },
+                    {
+                        "id":  "foreman",
+                        "name":  "工地佬",
+                        "tier":  "elite",
+                        "human_injury":  false,
+                        "hp":  90,
+                        "speed":  4,
+                        "leak_damage":  20,
+                        "attack_range_cells":  1.8,
+                        "attack_windup_ms":  600,
+                        "attack_cooldown_ms":  3000,
+                        "attack_effect":  "brick_and_stun",
+                        "tower_hp_damage":  0,
+                        "call_interval_ms":  0
+                    },
+                    {
+                        "id":  "foreman_boss",
+                        "name":  "工地佬",
+                        "tier":  "boss",
+                        "human_injury":  false,
+                        "hp":  900,
+                        "speed":  3.2,
+                        "leak_damage":  20,
+                        "attack_range_cells":  2.2,
+                        "attack_windup_ms":  800,
+                        "attack_cooldown_ms":  2800,
+                        "attack_effect":  "brick_and_stun",
+                        "tower_hp_damage":  0,
+                        "call_interval_ms":  0,
+                        "hp_scaling":  "flat",
+                        "hp_note":  "绝对 HP 900（不乘波次倍率），0.9b 为 180×7.0=1260"
+                    },
+                    {
+                        "id":  "ship_owner",
+                        "name":  "船佬",
+                        "tier":  "boss",
+                        "human_injury":  false,
+                        "hp":  1000,
+                        "speed":  3.6,
+                        "leak_damage":  25,
+                        "attack_range_cells":  2,
+                        "attack_windup_ms":  700,
+                        "attack_cooldown_ms":  3000,
+                        "attack_effect":  "ram_and_stun",
+                        "tower_hp_damage":  0,
+                        "call_interval_ms":  2500,
+                        "hp_scaling":  "flat",
+                        "hp_note":  "绝对 HP 1000（不乘波次倍率），0.9b 为 270×5.6=1512"
+                    }
+                ],
+    "waves":  [
+                  {
+                      "id":  1,
+                      "enemy_hp_multiplier":  1,
+                      "enemy_speed_multiplier":  1,
+                      "spawns":  [
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  1800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3600,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  5400,
+                                         "enemy":  "third_party_car"
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  2,
+                      "enemy_hp_multiplier":  2.4,
+                      "enemy_speed_multiplier":  1.12,
+                      "spawns":  [
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  900,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  1800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  2700,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  4500,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  5400,
+                                         "enemy":  "third_party_car"
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  3,
+                      "enemy_hp_multiplier":  5.2,
+                      "enemy_speed_multiplier":  1.28,
+                      "spawns":  [
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  900,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  1600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  1600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  2400,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  4000,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  4000,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  4800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  5600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  6400,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  7200,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  8000,
+                                         "enemy":  "third_party_car"
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  4,
+                      "enemy_hp_multiplier":  7,
+                      "enemy_speed_multiplier":  1.36,
+                      "spawns":  [
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  1600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  2400,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "foreman_boss"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  4000,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  4800,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  4800,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  5600,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  6400,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  6400,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  7200,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  7200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  8000,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  8400,
+                                         "enemy":  "third_party_car"
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  5,
+                      "enemy_hp_multiplier":  5.6,
+                      "enemy_speed_multiplier":  1.34,
+                      "spawns":  [
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  0,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  600,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  1200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  1200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  2000,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  2600,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  3200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  3800,
+                                         "enemy":  "ship_owner"
+                                     },
+                                     {
+                                         "at_ms":  4000,
+                                         "enemy":  "third_party_car"
+                                     },
+                                     {
+                                         "at_ms":  5200,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  5600,
+                                         "enemy":  "foreman"
+                                     },
+                                     {
+                                         "at_ms":  7400,
+                                         "enemy":  "third_party_car"
+                                     }
+                                 ]
+                  }
+              ],
+    "rating":  {
+                   "enabled":  true,
+                   "applies_to":  [
+                                      "victory"
+                                  ],
+                   "basis":  "game.core_hp",
+                   "thresholds":  [
+                                      {
+                                          "grade":  "S",
+                                          "label":  "零漏件",
+                                          "min_hp":  100,
+                                          "max_hp":  100
+                                      },
+                                      {
+                                          "grade":  "A",
+                                          "label":  "稳妥",
+                                          "min_hp":  76,
+                                          "max_hp":  99
+                                      },
+                                      {
+                                          "grade":  "B",
+                                          "label":  "理清",
+                                          "min_hp":  41,
+                                          "max_hp":  75
+                                      },
+                                      {
+                                          "grade":  "C",
+                                          "label":  "收尾",
+                                          "min_hp":  1,
+                                          "max_hp":  40
+                                      }
+                                  ],
+                   "defeat":  {
+                                  "rating":  null,
+                                  "label":  "失守"
+                              },
+                   "grants_premium":  false,
+                   "grant_note":  "评级只用于结案展示，不改变保费、返利、库存与奖励",
+                   "stored_in":  "game.settlement.rating",
+                   "display_in":  [
+                                      "terminal_overlay"
+                                  ]
+               },
+    "settlement":  {
+                       "fields":  [
+                                      "wave",
+                                      "result",
+                                      "rating",
+                                      "stats"
+                                  ],
+                       "stats":  [
+                                     "kills",
+                                     "leaks",
+                                     "waves_cleared",
+                                     "premium_earned",
+                                     "rebate_earned"
+                                 ],
+                       "balance_from":  "profile.premium",
+                       "rebate_from":  "profile.rebate",
+                       "no_terminal_bonus":  true,
+                       "buttons":  [
+                                       "免费开始下一局",
+                                       "结案 · 营销部",
+                                       "先看看现场"
+                                   ],
+                       "defeat_buttons":  [
+                                              "重新挑战",
+                                              "结案 · 营销部",
+                                              "先看看现场"
+                                          ]
+                   },
+    "teaching":  {
+                     "enabled":  true,
+                     "first_run_only":  true,
+                     "persist_flag":  "profile.teaching_done",
+                     "steps":  [
+                                   {
+                                       "id":  "buy-offer",
+                                       "text":  "点一份可选条款，先收进待启用栏",
+                                       "highlight":  "offers"
+                                   },
+                                   {
+                                       "id":  "place-card",
+                                       "text":  "点待启用条款，再点亮起的办公位",
+                                       "highlight":  "office"
+                                   },
+                                   {
+                                       "id":  "start-wave",
+                                       "text":  "准备好了，点下方主按钮开始",
+                                       "highlight":  "start-button"
+                                   }
+                               ],
+                     "skippable":  true,
+                     "blocks_input":  false,
+                     "writes_on_complete_or_skip":  true,
+                     "not_in_replay":  "已 teaching_done 的老档与已通过首局的新档不再显示"
+                 },
+    "presentation":  {
+                         "wave_preview":  "off",
+                         "wave_preview_allowed_values":  [
+                                                             "off"
+                                                         ],
+                         "glyph_primary":  {
+                                               "unit":  {
+                                                            "font_px":  24,
+                                                            "min_px":  20,
+                                                            "max_px":  28
+                                                        },
+                                               "hand_card":  {
+                                                                 "font_px":  26,
+                                                                 "min_px":  20,
+                                                                 "max_px":  30
+                                                             },
+                                               "offer_card":  {
+                                                                  "font_px":  24,
+                                                                  "min_px":  19,
+                                                                  "max_px":  27
+                                                              },
+                                               "badge_px":  {
+                                                                "card":  16,
+                                                                "unit":  18,
+                                                                "min":  16,
+                                                                "max":  20
+                                                            },
+                                               "badge_position":  {
+                                                                      "card":  "bottom-left",
+                                                                      "unit":  "bottom-left"
+                                                                  },
+                                               "glyph_position":  {
+                                                                      "card":  "center",
+                                                                      "unit":  "center"
+                                                                  },
+                                               "name_text":  "keep_below_glyph_8_5px"
+                                           },
+                         "enemy_stack":  {
+                                             "mode":  "path_offset",
+                                             "window_progress":  7000,
+                                             "offset_progress":  1400,
+                                             "max_display_progress":  99900,
+                                             "shrink_when_clustered":  true,
+                                             "horizontal_px_offset":  0,
+                                             "all_centers_must_stay_on_path":  true
+                                         },
+                         "visual_cap":  60,
+                         "effect_cap":  40,
+                         "flash_ms":  80,
+                         "damage_float_ms":  700,
+                         "reward_float_ms":  900,
+                         "wave_banner_ms":  900,
+                         "leak_flash_ms":  200,
+                         "shake_px":  3,
+                         "shake_ms":  120,
+                         "shake_optional":  true,
+                         "respect_reduced_motion":  true,
+                         "fx_list":  [
+                                         "car-shot",
+                                         "rock-shot",
+                                         "flame-shot",
+                                         "machine-shot",
+                                         "seal-shot",
+                                         "wave-shot",
+                                         "car-blast",
+                                         "rock-impact",
+                                         "fire-zone",
+                                         "fire-pulse",
+                                         "machine-blast",
+                                         "seal-blast",
+                                         "wave-blast",
+                                         "point-reward",
+                                         "hit-flash",
+                                         "damage-float",
+                                         "wave-banner",
+                                         "leak-flash",
+                                         "item-zero",
+                                         "item-reject",
+                                         "item-shield",
+                                         "intercept-lock",
+                                         "bandage-burst",
+                                         "bandage-mark",
+                                         "boss-call"
+                                     ],
+                         "effect_visual_map":  {
+                                                   "exploding_car":  {
+                                                                         "shot":  "car-shot",
+                                                                         "impact":  "car-blast"
+                                                                     },
+                                                   "slope_impact":  {
+                                                                        "shot":  "rock-shot",
+                                                                        "impact":  "rock-impact"
+                                                                    },
+                                                   "fire_zone":  {
+                                                                     "shot":  "flame-shot",
+                                                                     "impact":  "fire-zone"
+                                                                 },
+                                                   "overload":  {
+                                                                    "shot":  "machine-shot",
+                                                                    "impact":  "machine-blast"
+                                                                },
+                                                   "intercept":  {
+                                                                     "shot":  "seal-shot",
+                                                                     "impact":  "bandage-burst"
+                                                                 },
+                                                   "tidal_wave":  {
+                                                                      "shot":  "wave-shot",
+                                                                      "impact":  "wave-blast"
+                                                                  },
+                                                   "root_state":  "bandage-mark",
+                                                   "boss_call":  "boss-call"
+                                               },
+                         "enemy_card":  {
+                                            "style":  "paper_token_full_name",
+                                            "big_glyph":  false,
+                                            "paper":  "#fdf6e6",
+                                            "ink":  "#33281d",
+                                            "cinnabar":  "#b23a2b",
+                                            "border_px":  2,
+                                            "name_px":  {
+                                                            "normal":  11,
+                                                            "min":  10,
+                                                            "max":  12,
+                                                            "clustered":  10,
+                                                            "wrap_3char_below_px":  30
+                                                        },
+                                            "icon_px":  {
+                                                            "normal":  12,
+                                                            "min":  10,
+                                                            "max":  14
+                                                        },
+                                            "tag_px":  {
+                                                           "normal":  7,
+                                                           "boss":  8
+                                                       },
+                                            "bar_px":  3,
+                                            "numbers_px":  8,
+                                            "layout":  "小图标 左上 / 小案|大案 右上 / 全名 底部居中（3 字名在 \u003c30px 卡宽时折两行）/ 红条+当前/最大 最下",
+                                            "distinguish":  "全名 + 小图标 + 标签，不只靠颜色",
+                                            "name_color":  {
+                                                               "small":  "#33281d",
+                                                               "elite":  "#4f5b3f",
+                                                               "boss":  "#b23a2b"
+                                                           }
+                                        }
+                     },
+    "performance":  {
+                        "long_frame_ms":  100,
+                        "long_frames_budget_per_10s":  2,
+                        "max_enemies_on_board":  40,
+                        "save_each_logic_batch":  true,
+                        "empty_write":  false,
+                        "single_write_per_batch":  true,
+                        "save_size_budget_bytes":  1048576,
+                        "render_dirty_only":  true,
+                        "single_raf_loop":  true,
+                        "audio":  "none_in_mvp"
+                    },
+    "platform":  {
+                     "primary":  "h5_browser",
+                     "local_port":  8020,
+                     "local_serve":  "cd 游戏/保险词牌原型-0.8 \u0026\u0026 python -m http.server 8020",
+                     "browser_baseline":  {
+                                              "chrome_edge_min":  123,
+                                              "safari_ios_min":  17.2,
+                                              "firefox_min":  138,
+                                              "feature":  "import attributes with { type: \"json\" }",
+                                              "fallback":  "仅显示升级提示，不做 fetch 重写"
+                                          },
+                     "github_pages":  {
+                                          "publish_dir":  "docs",
+                                          "workflow":  ".github/workflows/pages.yml",
+                                          "nojekyll":  true,
+                                          "base":  "relative",
+                                          "build_required":  false,
+                                          "push":  "needs_user_remote_and_credentials"
+                                      },
+                     "wechat_minigame":  {
+                                             "decision":  "not_in_this_round",
+                                             "reason":  "DOM/CSS 无法在小游戏运行；需 Canvas 2D 重写渲染层、触摸事件、wx 存储适配，SVG 素材需转位图雪碧图",
+                                             "estimate_person_days":  [
+                                                                          3,
+                                                                          7
+                                                                      ],
+                                             "reusable":  "core.js 为纯逻辑无 DOM，可复用",
+                                             "prerequisite":  "H5 验收后另立任务，先做 1 天技术验证",
+                                             "not_verified":  [
+                                                                  "微信开发者工具",
+                                                                  "真机触摸",
+                                                                  "iOS 安全区",
+                                                                  "系统楷体回退"
+                                                              ]
+                                         }
+                 },
+    "balance_targets":  {
+                            "naive_strategy":  "默认资源：首赠 6，第 1 波价 2 时买 2–3 份、六种免费牌布置并至少合成 3 次，之后不追加大额购买；允许用一次返利道具",
+                            "naive_expected_loss_hp":  [
+                                                           40,
+                                                           80
+                                                       ],
+                            "naive_must_win":  true,
+                            "optimized_strategy":  "每波布防继续买/合（注意价格 2→6），第 4 波前形成 4–6 个三级或等价混编，关键波用道具",
+                            "optimized_expected":  "0 漏件 S，且不需要靠随机运气",
+                            "tuning_rule":  "数值已冻结；实测偏离目标区间时，02/04 报 00 由 01 出 0.8a 差量，不得自行调数",
+                            "no_merge_must_fail_wave":  [
+                                                            4,
+                                                            5
+                                                        ],
+                            "new_towers_balance_note":  "三新险（尤其责任险拦截）与价格随波会改变难度；D07 只以 0.8a 三组脚本记录实测，若朴素组 0 漏 S 或失守，走 0.9a 差量，不在本轮改波形",
+                            "price_tightness_note":  "价格 2/3/4/5/6 会让后期追加购买更贵，预期鼓励第 1–2 波早买；不改变任何单价以外的规则",
+                            "retune_0_9a":  {
+                                                "reason":  "0.9 G4：朴素规范打法第 5 波失守、优化最好 1 漏 A/90HP、仅旧三系 6×L3 拿 S；6×L1 第 4 波失守达标",
+                                                "change":  "仅第 5 波：22→18 件（10 车/8 工）、HP ×7.6→5.6、速度 ×1.44→1.34；第 4 波保持 ×7.0/19 件以保住 6×L1 第 4 波失守",
+                                                "predicted":  "总 HP 29064→24372（-16.1%），第 5 波需求由 ~465 降至 ~283；预期朴素转胜并掉血 40–80、优化转 0 漏 S",
+                                                "guard":  "若朴素仍失守或不足 40 掉血、或优化仍非 S，报 00 走 0.9b，不在本轮再调"
+                                            },
+                            "retune_0_9b":  {
+                                                "boss_hp_neutral":  true,
+                                                "detail":  "第 4 波 19→18（Boss 替换 2 个工地佬，波内 HP 9660 不变）；第 5 波 18→15（船佬替换 3 车+1 工，波内 HP 7392 不变）；波次总 HP 24372 不变",
+                                                "difficulty_target":  "沿用 0.9a：朴素胜利掉血 40–80、6×L1 第 4/5 波失守、优化 0 漏 S",
+                                                "risk":  "Boss 单点 HP 高、漏件伤害 30/40；若因 Boss 单漏导致失守，记 P1 报 00 走 0.9c（只调 Boss HP/漏伤）"
+                                            },
+                            "retune_0_9c":  {
+                                                "reason":  "0.9b G4：朴素组第 5 波失守（0.9a 为胜利掉血 60）；Boss 单漏 30/40 + 高单点 HP 造成回归",
+                                                "change":  "工地佬·大案 1260→900 HP、漏伤 30→20；船佬·大案 1512→1000 HP、漏伤 40→25；均为绝对 HP（hp_scaling=flat）；攻击/速度/普通敌/波次数量/价格/六险/绷带/UI 不动",
+                                                "predicted":  "波内 HP：第 4 波 9660→9300、第 5 波 7392→6880，总 24372→23500（−3.6%）；Boss 单漏伤害降 33%/38%；预期朴素回到胜利掉血 40–80、6×L1 仍第 4 波失守、优化 0 漏 S",
+                                                "guard":  "若朴素仍失守或优化仍非 S，报 00 走 0.9d（只再调 Boss HP/漏伤），不现场改数"
+                                            }
+                        },
+    "enemy_card":  {
+                       "style":  "hand_drawn_paper_token",
+                       "big_glyph":  {
+                                         "third_party_car":  "贼",
+                                         "foreman":  "兵"
+                                     },
+                       "name_unchanged":  {
+                                              "third_party_car":  "三者车主",
+                                              "foreman":  "工地佬"
+                                          },
+                       "paper":  "#fdf6e6",
+                       "ink":  "#33281d",
+                       "cinnabar":  "#b23a2b",
+                       "seal":  {
+                                    "third_party_car":  "#b23a2b",
+                                    "foreman":  "#4f5b3f"
+                                },
+                       "border_px":  2,
+                       "radius_px":  3,
+                       "glyph_px":  {
+                                        "normal":  22,
+                                        "min":  20,
+                                        "max":  24,
+                                        "clustered":  18
+                                    },
+                       "small_icon_px":  {
+                                             "normal":  14,
+                                             "min":  12,
+                                             "max":  16
+                                         },
+                       "small_icon_source":  "assets/0.7/enemy-third-party-car.svg / enemy-foreman.svg（复用，缩为 12–16px）",
+                       "hp_bar":  "单条连续红条 3px + 当前/最大数值 8–9px",
+                       "token_svg":  {
+                                         "third_party_car":  "enemy-token-thief.svg",
+                                         "foreman":  "enemy-token-soldier.svg"
+                                     },
+                       "distinguish":  "大字 + 小图标 + 朱砂/墨绿角标三通道，不只靠颜色"
+                   },
+    "boss":  {
+                 "enabled":  true,
+                 "enemy_ids":  [
+                                   "foreman_boss",
+                                   "ship_owner"
+                               ],
+                 "banner_text":  "大案来了",
+                 "banner_show_name":  true,
+                 "banner_ms":  2000,
+                 "pause_simulation":  false,
+                 "tag_boss":  "大案",
+                 "tag_normal":  "小案",
+                 "bar_px":  4,
+                 "name_px":  {
+                                 "normal":  11,
+                                 "min":  10,
+                                 "max":  12
+                             },
+                 "call_presentation":  {
+                                           "ship_owner":  {
+                                                              "kind":  "boss-call",
+                                                              "text":  "喊",
+                                                              "interval_ms":  2500,
+                                                              "no_gameplay_effect":  true
+                                                          }
+                                       },
+                 "wave_placement":  {
+                                        "wave4":  "foreman_boss @3200ms",
+                                        "wave5":  "ship_owner @3800ms"
+                                    }
+             },
+    "patch":  {
+                  "patch_id":  "INS-MVP-0.9c-boss-stats",
+                  "base_version":  "INS-MVP-0.9b",
+                  "base_config_path":  "协作/策划/MVP-0.9b配置.json",
+                  "base_config_sha256":  "F2E45B13BB76E571CA66029BB24AC816D98AE2063B49620A298727228970A665",
+                  "changes":  [
+                                  "enemies.foreman_boss（hp 900 / leak 20 / hp_scaling flat）",
+                                  "enemies.ship_owner（hp 1000 / leak 25 / hp_scaling flat）",
+                                  "content_scope/classification/balance_targets",
+                                  "patch"
+                              ],
+                  "unchanged":  [
+                                    "waves（数量/普通敌/倍率）",
+                                    "普通敌 two 种",
+                                    "价格 2/3/4/5/6",
+                                    "六险数值与绷带",
+                                    "返利/评级/教学/UI",
+                                    "schema 6/env 4/key"
+                                ],
+                  "config_version_kept":  "INS-MVP-0.9"
+              }
 }
