@@ -2,7 +2,7 @@ import {
   CONFIG,INSURANCES,createEnvelope,cardDisplay,positionOnPath,moveEntity,mergeEntities,buyOffer,
   refreshOffers,salvage,startWave,tick,purchaseItem,startNextRun,nextActionId,actionAlreadyProcessed,
   receiptFor,recordAction,commitEnvelope,loadProfile,migrateFrom06,migrateFrom07,migrateFrom08,pauseRecoveredCombat,ratingLabel,buyCostForWave
-} from "./core.js?v=0.9.0";
+} from "./core.js?v=0.9b.0";
 
 window.__liLePeiBooted = true;
 
@@ -18,9 +18,10 @@ const PHASE_LABEL={prep:"布防",combat:"战斗中",paused:"已暂停",victory:"
 const phaseText=phase=>PHASE_LABEL[phase]||phase;
 const TILE={path:"./assets/0.7/tile-path.svg",office:"./assets/0.7/tile-office.svg",ground:"./assets/0.7/tile-ground.svg",arrow:"./assets/0.7/path-arrow.svg",entry:"./assets/0.7/marker-entry.svg",exit:"./assets/0.7/marker-exit.svg",inspector:"./assets/0.7/inspector.svg"};
 const UNIT_ICON={car_damage:"./assets/0.7/unit-car-damage.svg",construction:"./assets/0.7/unit-construction.svg",property:"./assets/0.7/unit-property.svg",machine_damage:"./assets/0.9/unit-machine-damage.svg",liability:"./assets/0.9/unit-liability.svg",marine:"./assets/0.9/unit-marine.svg"};
-const ENEMY_TOKEN={third_party_car:"./assets/0.9/enemy-token-thief.svg",foreman:"./assets/0.9/enemy-token-soldier.svg"};
-const ENEMY_CHAR={third_party_car:"贼",foreman:"兵"};
-const ENEMY_ICON={third_party_car:"./assets/0.7/enemy-third-party-car.svg",foreman:"./assets/0.7/enemy-foreman.svg"};
+const ENEMY_TOKEN={third_party_car:"./assets/0.9/enemy-token-thief.svg",foreman:"./assets/0.9/enemy-token-soldier.svg",foreman_boss:"./assets/0.9/enemy-token-soldier.svg",ship_owner:"./assets/0.9/enemy-token-thief.svg"};
+const ENEMY_NAME={third_party_car:"客户",foreman:"工地佬",foreman_boss:"工地佬",ship_owner:"船佬"};
+const ENEMY_TIER={third_party_car:"small",foreman:"elite",foreman_boss:"boss",ship_owner:"boss"};
+const ENEMY_ICON={third_party_car:"./assets/0.7/enemy-third-party-car.svg",foreman:"./assets/0.7/enemy-foreman.svg",foreman_boss:"./assets/0.7/enemy-foreman.svg",ship_owner:"./assets/0.9b/enemy-ship-owner.svg"};
 const ITEM_ICON=Object.fromEntries(ITEM_CATALOG.map(item=>[item.id,"./assets/0.7/"+item.icon]));
 let envelope=null,mode="booting",screen="cover",message="",showResumeNotice=false,mergeMode=false;
 let shopReturn="cover",modalIntent=null,modalBusy=false,saveBlocked=null,toastTimer=null;
@@ -28,7 +29,8 @@ let lockRelease=null,lastFrame=performance.now(),accumulator=0,pointerDrag=null,
 let storageMetrics={lastMs:0,maxMs:0,longFrames:0,ticks:0,writes:0,serializedBytes:0};let lastActionSignature="",lastActionTime=0;
 let boardDirty=true,boardSig="",terminalDismissed=false,lastHandSig="",lastOfferSig="",lastPhaseKey="";
 let lastHeartSig="",lastLogSig="",lastItemSig="";
-let observedWave=0,lastLeakCount=0,waveBannerTimer=null,leakTimer=null;
+let observedWave=0,lastLeakCount=0,waveBannerTimer=null,leakTimer=null,bossBannerTimer=null;
+let seenEnemies=new Set(),seenInit=false,callSeen=new Map(),callTimers=[];
 const $say=message=>{const toast=$("toast");if(!toast)return;toast.textContent=message;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast.textContent="";},3500);};
 const isPrep=()=>Boolean($game()?.phase==="prep"),isPersistent=()=>mode==="writer",canMutate=()=>!saveBlocked&&(mode==="writer"||mode==="memory");
 function blankTemporaryEnvelope(){return createEnvelope(CONFIG.simulation.default_seed,{premium:0,grantApplied:true});}
@@ -163,7 +165,7 @@ function completeModalAction(){
   }else{
     const details={from_run:intent.expectedRunId,to_run:$profile().profile_id+":run:"+($run().run_seq+1),seed:$game().initial_seed};if(!confirmPreflight(intent,"new-run",details)){closeConfirm();return;}
     const previous=envelope,result=startNextRun(envelope,$game().initial_seed,intent.actionId);
-    if(!result.ok)messageText=result.reason;else{const saved=commitCandidate(previous,result.envelope);success=saved.ok;messageText=success?"新局已开始，保费与库存已保留。":saved.reason;if(success){terminalDismissed=false;lastHandSig="";lastOfferSig="";boardDirty=true;observedWave=1;lastLeakCount=0;}}
+    if(!result.ok)messageText=result.reason;else{const saved=commitCandidate(previous,result.envelope);success=saved.ok;messageText=success?"新局已开始，保费与库存已保留。":saved.reason;if(success){terminalDismissed=false;lastHandSig="";lastOfferSig="";boardDirty=true;observedWave=1;lastLeakCount=0;seenEnemies=new Set();seenInit=false;callSeen=new Map();}}
   }
   closeConfirm();if(messageText)$say(messageText);if(success){lastFrame=performance.now();accumulator=0;}render();
 }
@@ -311,7 +313,7 @@ function renderMapOverlays(){
   for(const enemy of g.enemies){
     activeEnemies.add(enemy.id);
     let node=layer.querySelector('[data-enemy-id="'+enemy.id+'"]');
-    if(!node){node=document.createElement("div");node.dataset.enemyId=enemy.id;node.dataset.type=enemy.type;node.className="enemy";node.innerHTML='<span class="enemy-token"><b class="enemy-char"></b><img class="enemy-mini" alt=""><small class="enemy-corner"></small><small class="root-mark">责</small></span><span class="enemy-bar"><i></i></span><small class="enemy-hp"></small>';node.querySelector(".enemy-mini").src=ENEMY_ICON[enemy.type];layer.append(node);}
+    if(!node){node=document.createElement("div");node.dataset.enemyId=enemy.id;node.dataset.type=enemy.type;node.className="enemy";node.innerHTML='<span class="enemy-token"><span class="enemy-name"></span><img class="enemy-mini" alt=""><small class="enemy-tag"></small><img class="bandage-mark" src="./assets/0.9b/bandage-mark.svg" alt=""></span><span class="enemy-bar"><i></i></span><small class="enemy-hp"></small>';node.querySelector(".enemy-mini").src=ENEMY_ICON[enemy.type];layer.append(node);}
     // 0.8: stack only along the path (display-y). The logical y and all combat rules stay untouched.
     const stack=CONFIG.presentation.enemy_stack;
     const near=ordered.filter(other=>Math.abs(other.y-enemy.y)<=stack.window_progress);
@@ -328,13 +330,19 @@ function renderMapOverlays(){
     node.title=(enemy.type==="third_party_car"?"三者车主":"工地佬")+" "+enemy.hp+"/"+enemy.max_hp;
     node.classList.toggle("windup",enemy.windup_ends_ms>g.elapsed_ms);
     node.classList.toggle("slowed",g.elapsed_ms<enemy.slow_until_ms);
+    if(!seenInit){seenEnemies.add(enemy.id);if(enemy.type==="ship_owner"){const pct=enemy.y/100000;for(const t of [0.25,0.5,0.75])if(pct>=t)callSeen.set(enemy.id+":"+t,true);}}
+    else if(ENEMY_TIER[enemy.type]==="boss"&&!seenEnemies.has(enemy.id)){seenEnemies.add(enemy.id);showBossBanner(ENEMY_NAME[enemy.type]);}
     node.classList.toggle("rooted",g.elapsed_ms<(enemy.root_until_ms||0));
     node.classList.toggle("hit",hitIds.has(enemy.id));
-    node.querySelector(".enemy-char").textContent=ENEMY_CHAR[enemy.type];
+    node.querySelector(".enemy-name").textContent=ENEMY_NAME[enemy.type];
+    node.querySelector(".enemy-tag").textContent=ENEMY_TIER[enemy.type]==="boss"?"大案":"小案";
+    node.classList.toggle("boss",ENEMY_TIER[enemy.type]==="boss");
     node.querySelector(".enemy-hp").textContent=enemy.hp+"/"+enemy.max_hp;
     node.querySelector(".enemy-bar i").style.width=Math.max(0,enemy.hp/enemy.max_hp*100)+"%";
   }
   for(const node of [...layer.querySelectorAll("[data-enemy-id]")])if(!activeEnemies.has(node.dataset.enemyId))node.remove();
+  if(!seenInit&&g.enemies.length){seenInit=true;for(const enemy of g.enemies)seenEnemies.add(enemy.id);}
+  renderBossCalls(g,layer);
   const protectedNow=g.elapsed_ms<g.inspector_protected_until_ms;
   let shield=layer.querySelector(".inspector-shield");
   if(protectedNow){
@@ -435,6 +443,31 @@ function layoutBoard(){
   shell.style.width=Math.round(width)+"px";
   shell.style.height=Math.round(width*1.25)+"px";
   return true;
+}
+function showBossBanner(name){
+  const banner=$("waveBanner");if(!banner)return;
+  banner.textContent=CONFIG.boss.banner_text+(CONFIG.boss.banner_show_name?" · "+name:"");
+  banner.classList.add("boss-banner");banner.hidden=false;
+  banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
+  clearTimeout(bossBannerTimer);clearTimeout(waveBannerTimer);
+  bossBannerTimer=setTimeout(()=>{banner.hidden=true;banner.classList.remove("boss-banner");},CONFIG.boss.banner_ms);
+}
+function renderBossCalls(g,layer){
+  for(const enemy of g.enemies){
+    if(enemy.type!=="ship_owner")continue;
+    const pct=enemy.y/100000;
+    for(const threshold of [0.25,0.5,0.75]){
+      if(pct<threshold||callSeen.get(enemy.id+":"+threshold))continue;
+      callSeen.set(enemy.id+":"+threshold,true);
+      const p=positionOnPath(enemy.y);
+      const bubble=document.createElement("span");bubble.className="boss-call";
+      bubble.textContent=CONFIG.boss.call_presentation.ship_owner.text;
+      bubble.style.left=(p.col/CONFIG.board.columns*layer.clientWidth)+"px";
+      bubble.style.top=(p.row/CONFIG.board.rows*layer.clientHeight)+"px";
+      layer.append(bubble);
+      callTimers.push(setTimeout(()=>bubble.remove(),1100));
+    }
+  }
 }
 function showWaveBanner(text){const banner=$("waveBanner");if(!banner)return;banner.textContent=text;banner.hidden=false;banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";clearTimeout(waveBannerTimer);waveBannerTimer=setTimeout(()=>{banner.hidden=true;},CONFIG.presentation.wave_banner_ms);}
 function flashLeak(){const screenNode=$("gameScreen");if(!screenNode)return;screenNode.classList.remove("leak-flash");void screenNode.offsetWidth;screenNode.classList.add("leak-flash");clearTimeout(leakTimer);leakTimer=setTimeout(()=>screenNode.classList.remove("leak-flash"),CONFIG.presentation.leak_flash_ms);}
@@ -574,7 +607,7 @@ function render(){
 }
 function selectedCard(){return cardAtRef($game()?.selected);}
 function showCover(){if(!$game())return;if($game().phase==="combat"){const ok=runUserAction("pause",{source:"cover"},draft=>{draft.game.phase="paused";return{ok:true};},"案件已暂停并保存。");if(!ok)return;}screen="cover";mergeMode=false;describe(null);closeSheet();render();}
-function showGame(){if(!$game())return;screen="game";$game().selected=null;mergeMode=false;describe(null);closeSheet();boardSig="";boardDirty=true;render();if(showResumeNotice){$say($game().phase==="paused"?"案件已准确接续并暂停；点“继续战斗”后才会开打。":"案件已接续。");showResumeNotice=false;}}
+function showGame(){if(!$game())return;screen="game";$game().selected=null;mergeMode=false;describe(null);closeSheet();seenEnemies=new Set();seenInit=false;callSeen=new Map();boardSig="";boardDirty=true;render();if(showResumeNotice){$say($game().phase==="paused"?"案件已准确接续并暂停；点“继续战斗”后才会开打。":"案件已接续。");showResumeNotice=false;}}
 function showShop(returnTo){if(!$game())return;if($run().status!=="terminal"||!["victory","defeat"].includes($game().phase)){$say("结案后开放");return;}shopReturn=returnTo;screen="shop";closeSheet();render();}
 function closeShop(){screen=shopReturn==="game"?"game":"cover";boardSig="";boardDirty=true;render();}
 function openSheet(which){const layer=$("sheetLayer");if(!layer)return;layer.hidden=false;const details=$("detailsDisclosure");if(which==="help")details.open=true;else if(which==="log")details.open=false;layer.querySelector(".sheet").scrollTop=which==="log"?260:0;}
