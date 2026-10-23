@@ -1,4 +1,4 @@
-import SPEC from "./insurance-config.json?v=0.9.0" with { type: "json" };
+import SPEC from "./insurance-config.json?v=0.9b.0" with { type: "json" };
 
 export const CONFIG = SPEC;
 const ATTACK_TEXT={
@@ -6,7 +6,7 @@ const ATTACK_TEXT={
   construction:"边坡落石造成范围伤害与减速。",
   property:"基本险火灾持续3秒，每0.5秒造成一次伤害。",
   machine_damage:"过载冲击，短射程高单体伤害。",
-  liability:"定责拦截：范围伤害并让来件定责停步0.8秒。",
+  liability:"定责拦截：命中缠绷带定身 0.8 秒；对客户（人伤）造成 1.5 倍伤害。",
   marine:"水波横扫，全场最远的大范围伤害。"
 };
 export const INSURANCES = Object.fromEntries(SPEC.towers.map(t => [t.id, {
@@ -38,6 +38,16 @@ export function validateConfigIntegrity(){
   if(!Array.isArray(CONFIG.economy.buy_cost_by_wave)||CONFIG.economy.buy_cost_by_wave.length!==CONFIG.waves.length||!CONFIG.economy.buy_cost_by_wave.every(v=>Number.isInteger(v)&&v>=0))return{ok:false,reason:"bad buy_cost_by_wave"};
   if(!Array.isArray(CONFIG.economy.offer_pool)||CONFIG.economy.offer_pool.length!==CONFIG.economy.offer_weights.length||!CONFIG.economy.offer_weights.every(v=>v>0))return{ok:false,reason:"bad offer pool/weights"};
   if(CONFIG.economy.offer_pool.length!==6||CONFIG.economy.initial_hand.length!==6)return{ok:false,reason:"six-type pool/hand expected"};
+  const enemies=CONFIG.enemies||[];
+  if(enemies.length!==4||new Set(enemies.map(e=>e.id)).size!==4)return{ok:false,reason:"enemies must contain four unique ids"};
+  if(!["third_party_car","foreman","foreman_boss","ship_owner"].every(id=>enemies.some(e=>e.id===id)))return{ok:false,reason:"missing enemy id"};
+  if(!enemies.every(e=>["small","elite","boss"].includes(e.tier)&&typeof e.human_injury==="boolean"&&(!e.hp_scaling||e.hp_scaling==="flat")))return{ok:false,reason:"bad enemy tier/human_injury/hp_scaling"};
+  if(enemies.filter(e=>e.human_injury).map(e=>e.id).join(",")!=="third_party_car")return{ok:false,reason:"human_injury only on third_party_car"};
+  if((CONFIG.boss.enemy_ids||[]).length!==2||!CONFIG.boss.enemy_ids.every(id=>enemies.some(e=>e.id===id&&e.tier==="boss")))return{ok:false,reason:"boss ids must be boss-tier enemies"};
+  if(CONFIG.boss.banner_ms!==2000||CONFIG.boss.pause_simulation!==false||CONFIG.boss.banner_text!=="大案来了")return{ok:false,reason:"bad boss banner"};
+  const w4=CONFIG.waves[3].spawns,w5=CONFIG.waves[4].spawns;
+  if(!w4.some(s=>s.enemy==="foreman_boss"&&s.at_ms===3200)||!w5.some(s=>s.enemy==="ship_owner"&&s.at_ms===3800))return{ok:false,reason:"boss placement mismatch"};
+  for(const wave of CONFIG.waves)for(const spawn of wave.spawns)if(!enemies.some(e=>e.id===spawn.enemy))return{ok:false,reason:"spawn enemy not in roster"};
   return{ok:true};
 }
 
@@ -46,6 +56,7 @@ function normalizeSeed(seed){const n=Number(seed)>>>0;return n||1;}
 function entityId(game){return "e"+String(game.next_entity_id++).padStart(8,"0");}
 function makeCard(game,type,level=1,equipment=EQUIPMENT_BY_TYPE[type],salvageCredit=CONFIG.salvage.free_card_credit){return{id:entityId(game),type,level,equipment_id:equipment,salvage_credit:salvageCredit};}
 function appendLog(game,text){game.log.unshift(text);if(game.log.length>30)game.log.length=30;}
+function enemyDisplayName(spec){return spec.tier==="boss"?spec.name+"·大案":spec.name;}
 function posForOffice(index){const [col,row]=OFFICE_POSITIONS[index]||[];return col===undefined?null:{col:col+.5,row:row+.5};}
 function distance(a,b){return Math.hypot(a.col-b.col,a.row-b.row);}
 export function positionOnPath(progress){
@@ -227,8 +238,8 @@ export function startWave(game){
 }
 function spawnEnemy(game,spawn){
   const spec=ENEMY_BY_ID.get(spawn.enemy),wave=WAVE_BY_ID.get(game.current_wave),hpMultiplier=wave.enemy_hp_multiplier||1;
-  // 0.9a uses a decimal HP multiplier (5.6); round to an integer HP so schema validation and the 3px bar stay exact.
-  const spawnHp=Math.round(spec.hp*hpMultiplier);
+  // 0.9c: bosses use hp_scaling="flat" (absolute HP, no wave multiplier); everything else keeps the wave multiplier.
+  const spawnHp=spec.hp_scaling==="flat"?Math.round(spec.hp):Math.round(spec.hp*hpMultiplier);
   game.enemies.push({id:entityId(game),type:spawn.enemy,y:0,hp:spawnHp,max_hp:spawnHp,speed:spec.speed*(wave.enemy_speed_multiplier||1),slow_until_ms:0,root_until_ms:0,windup_ends_ms:0,target_id:null,cooldown_until_ms:0});
 }
 function removeDead(game){game.enemies=game.enemies.filter(enemy=>enemy.hp>0);}
@@ -250,7 +261,15 @@ function hitEnemy(game,profile,enemy,damage){
 }
 function applyAreaDamage(game,profile,effect,damage){
   const center={col:effect.x,row:effect.y};const hits=game.enemies.filter(enemy=>enemy.hp>0&&distance(positionOnPath(enemy.y),center)<=effect.radius_cells).sort((a,b)=>a.id.localeCompare(b.id));
-  for(const enemy of hits){hitEnemy(game,profile,enemy,damage);if(effect.kind==="construction")enemy.slow_until_ms=Math.max(enemy.slow_until_ms,game.elapsed_ms+effect.slow_duration_ms);}removeDead(game);
+  for(const enemy of hits){
+    let actual=damage;
+    if(effect.kind==="seal"&&effect.human_injury_multiplier){
+      const spec=ENEMY_BY_ID.get(enemy.type);
+      if(spec&&spec.human_injury)actual=Math.round(damage*effect.human_injury_multiplier);
+    }
+    hitEnemy(game,profile,enemy,actual);
+    if(effect.kind==="construction")enemy.slow_until_ms=Math.max(enemy.slow_until_ms,game.elapsed_ms+effect.slow_duration_ms);
+  }removeDead(game);
 }
 function processDueEffects(game,profile){
   const due=game.effects.filter(effect=>effect.due_ms<=game.elapsed_ms).sort((a,b)=>a.due_ms-b.due_ms||(a.kind==="fire-tick"?0:1)-(b.kind==="fire-tick"?0:1)||a.seq-b.seq);game.effects=game.effects.filter(effect=>effect.due_ms>game.elapsed_ms);
@@ -262,7 +281,7 @@ function processDueEffects(game,profile){
       game.effects=game.effects.filter(item=>!(item.kind==="fire-tick"&&item.source_id===effect.source_id));
       pushEffect(game,{...effect,kind:"fire-tick",remaining_ticks:6,period_ms:500,due_ms:game.elapsed_ms+500,ends_ms:game.elapsed_ms+3000});pushVisual(game,"fire-zone",{x:effect.x,y:effect.y},3000);
     }else{
-      const blastByKind={construction:"rock-impact",car:"car-blast",machine:"machine-blast",seal:"seal-blast",wave:"wave-blast"};
+      const blastByKind={construction:"rock-impact",car:"car-blast",machine:"machine-blast",seal:"bandage-burst",wave:"wave-blast"};
       pushVisual(game,blastByKind[effect.kind]||"car-blast",{x:effect.x,y:effect.y},850);
       applyAreaDamage(game,profile,effect,effect.damage);
       if(effect.kind==="seal"&&effect.root_duration_ms>0){
@@ -303,7 +322,7 @@ function towerAttack(game,tower,officeIndex){
   if(spec.effect==="fire_zone")pushEffect(game,{...base,kind:"fire-create",due_ms:game.elapsed_ms+delay,remaining_ticks:0});
   else{
     const kindByEffect={exploding_car:"car",slope_impact:"construction",overload:"machine",intercept:"seal",tidal_wave:"wave"};
-    pushEffect(game,{...base,kind:kindByEffect[spec.effect]||"car",due_ms:game.elapsed_ms+delay,slow_duration_ms:spec.slow_duration_ms||0,root_duration_ms:spec.root_duration_ms||0});
+    pushEffect(game,{...base,kind:kindByEffect[spec.effect]||"car",due_ms:game.elapsed_ms+delay,slow_duration_ms:spec.slow_duration_ms||0,root_duration_ms:spec.root_duration_ms||0,human_injury_multiplier:spec.human_injury_multiplier||0});
   }
   tower.cooldown_ms=spec.attack_period_ms;game.diagnostics.attacks++;
 }
@@ -314,10 +333,10 @@ function updateTowers(game){for(let index=0;index<game.formation.length;index++)
 }}
 function leakEnemy(game,enemy,spec){
   const protectedNow=game.elapsed_ms<game.inspector_protected_until_ms;game.diagnostics.leaks++;
-  if(protectedNow){enemy.hp=0;appendLog(game,spec.name+"漏过防线，不属责保护生效，未扣耐久。");return false;}
+  if(protectedNow){enemy.hp=0;appendLog(game,enemyDisplayName(spec)+"漏过防线，不属责保护生效，未扣耐久。");return false;}
   const pos=positionOnPath(enemy.y);pushVisual(game,"leak-flash",{x:pos.col,y:pos.row},CONFIG.presentation.leak_flash_ms);
   game.core_hp=Math.max(0,game.core_hp-spec.leak_damage);enemy.hp=0;
-  appendLog(game,spec.name+"漏过防线，查勘员耐久-"+spec.leak_damage+"。");
+  appendLog(game,enemyDisplayName(spec)+"漏过防线，查勘员耐久-"+spec.leak_damage+"。");
   if(game.core_hp<=0){game.phase="defeat";game.settlement=settlementFor(game);game.effects=[];game.visuals=[];game.inspector_protected_until_ms=0;clearRoots(game);appendLog(game,"查勘员耐久耗尽。");return true;}return false;
 }
 function finishWave(game,profile,run){
@@ -364,7 +383,7 @@ function validateGameShape(game,{schemaVersion,configVersion,maxWave,settlementM
   if(!Number.isInteger(game.current_wave)||game.current_wave<1||game.current_wave>maxWave||!Number.isInteger(game.rng_state)||game.rng_state===0)return false;
   if(!Number.isInteger(game.next_entity_id)||game.next_entity_id<1||!Number.isInteger(game.free_refresh_left)||game.free_refresh_left<0||game.free_refresh_left>CONFIG.economy.free_refresh_per_prep)return false;
   if(!Number.isSafeInteger(game.tick_index)||game.tick_index<0||game.tick_index>10000000||!Number.isSafeInteger(game.elapsed_ms)||game.elapsed_ms<0||game.elapsed_ms!==game.tick_index*CONFIG.simulation.tick_ms)return false;
-  if(!Number.isSafeInteger(game.wave_elapsed_ms)||game.wave_elapsed_ms<0||game.wave_elapsed_ms>game.elapsed_ms||!Number.isInteger(game.spawns_done)||game.spawns_done<0||game.spawns_done>WAVE_BY_ID.get(game.current_wave).spawns.length)return false;
+  if(!Number.isSafeInteger(game.wave_elapsed_ms)||game.wave_elapsed_ms<0||game.wave_elapsed_ms>game.elapsed_ms||!Number.isInteger(game.spawns_done)||game.spawns_done<0||game.spawns_done>100000)return false;
   if(!Array.isArray(game.hand)||game.hand.length!==CONFIG.economy.hand_capacity||!Array.isArray(game.formation)||game.formation.length!==OFFICE_POSITIONS.length||!Array.isArray(game.offers)||game.offers.length!==CONFIG.economy.offer_count)return false;
   if(!Number.isInteger(game.core_hp)||game.core_hp<0||game.core_hp>CONFIG.formation.base_hp||!Number.isSafeInteger(game.inspector_protected_until_ms)||game.inspector_protected_until_ms<0||game.inspector_protected_until_ms>game.elapsed_ms+CONFIG.items.outside_liability.duration_ms||!Array.isArray(game.enemies)||!Array.isArray(game.effects)||!Array.isArray(game.visuals)||!Array.isArray(game.cleared_wave_ids))return false;
   if(game.phase!=="combat"&&game.phase!=="paused"&&game.inspector_protected_until_ms!==0)return false;
