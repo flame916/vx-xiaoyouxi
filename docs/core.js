@@ -1,4 +1,4 @@
-import SPEC from "./insurance-config.json?v=0.9b.0" with { type: "json" };
+import SPEC from "./insurance-config.json?v=0.9e.0" with { type: "json" };
 
 export const CONFIG = SPEC;
 const ATTACK_TEXT={
