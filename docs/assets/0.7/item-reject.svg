@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="56" viewBox="0 0 48 56" role="img" aria-labelledby="title desc">
+  <title id="title">拒赔</title>
+  <desc id="desc">折角档案纸上的退回箭头与拒字印记</desc>
+  <path d="M8 2h21l11 11v39a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#F7F1E5" stroke="#49372C" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M29 2v9a2 2 0 0 0 2 2h9" fill="#E5D4B9" stroke="#49372C" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M34 20H20a5 5 0 0 0-5 5v1m0 0 4-4m-4 4-4-4" fill="none" stroke="#819182" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="11" y="31" width="26" height="15" rx="2" fill="none" stroke="#B84639" stroke-width="1.6"/>
+  <text x="24" y="42" text-anchor="middle" fill="#B84639" font-size="12" font-weight="800" font-family="'Noto Sans CJK SC','Microsoft YaHei',sans-serif">拒</text>
+  <path d="M14 50h20" stroke="#819182" stroke-width="1.4" stroke-linecap="round"/>
+</svg>

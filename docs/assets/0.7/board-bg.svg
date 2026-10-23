@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bd8c5c"/>
+      <stop offset="1" stop-color="#8a5a33"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#8a7053" stroke-width="1" opacity=".1" fill="none">
+    <path d="M16 92Q210 80 400 94T784 86"/>
+    <path d="M16 172Q220 162 420 176T784 166"/>
+    <path d="M16 258Q200 248 400 262T784 252"/>
+    <path d="M16 348Q230 338 430 352T784 342"/>
+    <path d="M16 448Q210 438 400 452T784 442"/>
+    <path d="M16 548Q220 538 420 552T784 542"/>
+    <path d="M16 648Q200 638 400 652T784 642"/>
+    <path d="M16 748Q230 738 430 752T784 742"/>
+    <path d="M16 848Q210 838 400 852T784 842"/>
+    <path d="M16 938Q220 928 420 942T784 932"/>
+  </g>
+  <g fill="#d9bf95" opacity=".07">
+    <ellipse cx="180" cy="300" rx="92" ry="40"/>
+    <ellipse cx="560" cy="640" rx="112" ry="48"/>
+    <ellipse cx="330" cy="880" rx="82" ry="34"/>
+  </g>
+  <rect x="0" y="0" width="800" height="16" fill="url(#wood)"/>
+  <rect x="0" y="984" width="800" height="16" fill="url(#wood)"/>
+  <rect x="0" y="0" width="16" height="1000" fill="url(#wood)"/>
+  <rect x="784" y="0" width="16" height="1000" fill="url(#wood)"/>
+  <g stroke="#5f3c22" stroke-width="1" opacity=".35" fill="none">
+    <path d="M0 5H800M0 11H800M0 989H800M0 995H800"/>
+    <path d="M5 0V1000M11 0V1000M789 0V1000M795 0V1000"/>
+  </g>
+  <rect x="1" y="1" width="798" height="998" fill="none" stroke="#33281d" stroke-width="2"/>
+  <rect x="16" y="16" width="768" height="968" fill="none" stroke="#33281d" stroke-width="2.5"/>
+  <g opacity=".5" fill="#b23a2b" stroke="#742117" stroke-width="1.5">
+    <g transform="rotate(8 24 24)">
+      <rect x="8" y="8" width="32" height="32" rx="2"/>
+      <path d="M24 16L30 24L24 32L18 24Z" fill="none" stroke="#fdf6e6" stroke-width="2"/>
+    </g>
+    <g transform="rotate(-8 24 976)">
+      <rect x="8" y="960" width="32" height="32" rx="2"/>
+      <path d="M24 968L30 976L24 984L18 976Z" fill="none" stroke="#fdf6e6" stroke-width="2"/>
+    </g>
+    <g transform="rotate(-8 776 24)" opacity=".8">
+      <rect x="763" y="11" width="26" height="26" rx="2"/>
+      <path d="M776 17L781 24L776 31L771 24Z" fill="none" stroke="#fdf6e6" stroke-width="1.6"/>
+    </g>
+    <g transform="rotate(8 776 976)" opacity=".8">
+      <rect x="763" y="963" width="26" height="26" rx="2"/>
+      <path d="M776 969L781 976L776 983L771 976Z" fill="none" stroke="#fdf6e6" stroke-width="1.6"/>
+    </g>
+  </g>
+  <g opacity=".85" fill="none" stroke="#e7b866" stroke-linecap="round">
+    <path d="M700 20H778V94" stroke-width="4"/>
+    <path d="M706 28H772V88" stroke-width="1.5" opacity=".7"/>
+    <circle cx="706" cy="28" r="3" fill="#e7b866" stroke="none"/>
+  </g>
+  <g opacity=".85" fill="none" stroke="#b23a2b" stroke-linecap="round">
+    <path d="M778 906V978H704" stroke-width="4"/>
+    <path d="M772 914V972H710" stroke-width="1.5" opacity=".7"/>
+    <circle cx="772" cy="914" r="3" fill="#b23a2b" stroke="none"/>
+  </g>
+</svg>

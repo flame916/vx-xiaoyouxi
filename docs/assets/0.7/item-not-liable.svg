@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="56" viewBox="0 0 48 56" role="img" aria-labelledby="title desc">
+  <title id="title">不属责</title>
+  <desc id="desc">折角档案纸上的档案印章，完整写有不属责三字并分两行排写</desc>
+  <path d="M8 2h21l11 11v39a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#F7F1E5" stroke="#49372C" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M29 2v9a2 2 0 0 0 2 2h9" fill="#E5D4B9" stroke="#49372C" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M13 18h14m-14 3h10" fill="none" stroke="#A6B4A5" stroke-width="1.4" stroke-linecap="round"/>
+  <rect x="7" y="24" width="34" height="24" rx="2" fill="#F2E5D7" stroke="#B84639" stroke-width="1.7"/>
+  <rect x="9.5" y="26.5" width="29" height="19" rx="1" fill="none" stroke="#B84639" stroke-width="0.8"/>
+  <text text-anchor="middle" fill="#B84639" font-size="10.5" font-weight="800" font-family="'Noto Sans CJK SC','Microsoft YaHei',sans-serif"><tspan x="24" y="35.5">不属</tspan><tspan x="24" y="45">责</tspan></text>
+</svg>
