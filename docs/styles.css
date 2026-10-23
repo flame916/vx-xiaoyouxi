@@ -1550,8 +1550,6 @@ body.is-dragging { cursor: grabbing; }
 }
 .enemy[data-type="third_party_car"] .enemy-token { background-image: url("./assets/0.9/enemy-token-thief.svg"); }
 .enemy[data-type="foreman"] .enemy-token { background-image: url("./assets/0.9/enemy-token-soldier.svg"); }
-.enemy-char { margin-top: 2px; color: #7a2117; font: 900 22px/1 var(--font-display); text-shadow: 0 1px 0 rgba(255, 249, 233, .75); }
-.enemy[data-type="foreman"] .enemy-char { color: #3f4a32; }
 .enemy-mini { position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; object-fit: contain; pointer-events: none; }
 .enemy-corner { position: absolute; left: 2px; bottom: 2px; width: 8px; height: 8px; border: 1px solid #5e1c12; border-radius: 1px; background: #b23a2b; }
 .enemy[data-type="foreman"] .enemy-corner { border-color: #2f3a25; background: #4f5b3f; }
@@ -1562,7 +1560,6 @@ body.is-dragging { cursor: grabbing; }
 .enemy.rooted .enemy-token { border-radius: 3px; box-shadow: 0 0 0 2px #b23a2b, 0 0 7px rgba(178, 58, 43, .55); }
 .enemy.clustered { width: 30px; }
 .enemy.clustered .enemy-token { width: 30px; height: 40px; }
-.enemy.clustered .enemy-char { margin-top: 0; font-size: 18px; }
 .enemy.clustered .enemy-mini { width: 12px; height: 12px; }
 .enemy.clustered .enemy-bar { width: 28px; height: 3px; }
 .enemy.clustered .enemy-hp { font-size: 8px; }
@@ -1586,7 +1583,6 @@ body.is-dragging { cursor: grabbing; }
 @media (max-height: 660px) {
   .enemy { width: 40px; }
   .enemy-token { width: 40px; height: 54px; }
-  .enemy-char { font-size: 20px; }
   .enemy-bar { width: 34px; }
 }
 @media (max-width: 370px) {
@@ -1594,4 +1590,62 @@ body.is-dragging { cursor: grabbing; }
   .enemy-token { width: 40px; height: 54px; }
   .enemy.clustered { width: 30px; }
   .enemy.clustered .enemy-token { width: 30px; height: 40px; }
+}
+
+/* =================================================================
+   INS-MVP-0.9b: full-name enemy paper cards, boss banner, bandage root.
+   ================================================================= */
+.enemy { width: 34px; }
+.enemy-token { width: 34px; height: 45px; }
+.enemy-name {
+  position: absolute; left: 2px; right: 2px; bottom: 8px;
+  color: #33281d; font-size: 11px; font-weight: 900; line-height: 1.05;
+  text-align: center; white-space: normal; word-break: break-all; overflow: hidden;
+}
+.enemy[data-type="foreman"] .enemy-name, .enemy[data-type="foreman_boss"] .enemy-name { color: #4f5b3f; }
+.enemy.boss .enemy-name { color: #b23a2b; }
+.enemy-mini { left: 1px; top: 1px; width: 12px; height: 12px; }
+.enemy-tag {
+  position: absolute; right: 1px; top: 1px; z-index: 3;
+  padding: 0 1px; border-radius: 1px;
+  color: #5c4834; background: rgba(253, 246, 230, .88);
+  font-size: 7px; font-weight: 900; line-height: 1.3;
+}
+.enemy.boss .enemy-tag { border: 1px solid #b23a2b; color: #b23a2b; font-size: 8px; }
+.enemy-bar { width: 30px; height: 3px; margin-top: 1px; }
+.enemy.boss .enemy-bar { height: 4px; }
+.enemy-hp { font-size: 8px; }
+.enemy.clustered { width: 26px; }
+.enemy.clustered .enemy-token { width: 26px; height: 35px; }
+.enemy.clustered .enemy-name { bottom: 7px; font-size: 9px; }
+.enemy.clustered .enemy-bar { width: 24px; }
+.bandage-mark { display: none; position: absolute; right: -4px; top: -4px; width: 14px; height: 14px; z-index: 4; }
+.enemy.rooted .bandage-mark { display: block; }
+.enemy.rooted .enemy-token { box-shadow: 0 0 0 2px #b23a2b, 0 0 6px rgba(178, 58, 43, .45); }
+.vfx-bandage-burst { width: 54px; height: 54px; background: url("./assets/0.9b/fx-bandage-burst.svg") center / contain no-repeat; animation: impact-pop .8s ease-out both; }
+.boss-call {
+  position: absolute; z-index: 9; transform: translate(-50%, -150%);
+  padding: 1px 5px; border: 1.5px solid #7a2c1e; border-radius: 10px;
+  background: #fff4d9; color: #8d2f1f; font: 900 10px/1.4 var(--font-display);
+  animation: point-float 1s ease-out both; pointer-events: none;
+}
+.wave-banner.boss-banner { border-width: 3px; background: rgba(255, 240, 214, .98); font-size: 23px; letter-spacing: .2em; }
+@media (max-width: 389px) {
+  .enemy { width: 30px; }
+  .enemy-token { width: 30px; height: 40px; }
+  .enemy-name { font-size: 10px; bottom: 7px; }
+  .enemy.clustered { width: 24px; }
+  .enemy.clustered .enemy-token { width: 24px; height: 32px; }
+  .enemy.clustered .enemy-name { font-size: 9px; }
+  .enemy.clustered .enemy-bar { width: 22px; }
+}
+@media (max-height: 660px) {
+  .enemy { width: 28px; }
+  .enemy-token { width: 28px; height: 37px; }
+  .enemy-name { font-size: 9px; bottom: 6px; }
+  .enemy-mini { width: 10px; height: 10px; }
+  .enemy.clustered { width: 22px; }
+  .enemy.clustered .enemy-token { width: 22px; height: 29px; }
+  .enemy.clustered .enemy-name { font-size: 8px; }
+  .enemy.clustered .enemy-bar { width: 20px; }
 }
