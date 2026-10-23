@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>理了个赔</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=0.9b.0">
+  <link rel="stylesheet" href="./styles.css?v=0.9e.0">
 </head>
 <body>
   <main class="app-shell">
@@ -181,6 +181,28 @@
             <h2 id="detailTitle">条款说明</h2>
             <p id="detailText">点选条款查看完整险种名、等级与赔付效果。</p>
           </details>
+          <section class="sheet-section" id="insuranceGuide" aria-labelledby="insuranceGuideTitle">
+            <h2 id="insuranceGuideTitle">六险一览</h2>
+            <ul class="guide-list">
+              <li><b>车损险</b> <span class="guide-glyph">车</span> 范围爆发伤害，覆盖路径拐角；随波价格 2/3/4/5/6 保费。</li>
+              <li><b>建工险</b> <span class="guide-glyph">建</span> 落石+减速，适合长直路段；随波价格 2/3/4/5/6 保费。</li>
+              <li><b>财产险</b> <span class="guide-glyph">财</span> 持续火区，克制密集来件；随波价格 2/3/4/5/6 保费。</li>
+              <li><b>机器损坏险</b> <span class="guide-glyph">机</span> 1.2 格短射程高单体爆发；随波价格 2/3/4/5/6 保费。</li>
+              <li><b>责任险</b> <span class="guide-glyph">责</span> 范围伤害+人伤绷带定身 0.8 秒，对客户伤害 ×1.5；随波价格 2/3/4/5/6 保费。</li>
+              <li><b>船舶险</b> <span class="guide-glyph">船</span> 4.0 格最远射程大范围水波；随波价格 2/3/4/5/6 保费。</li>
+            </ul>
+            <p class="guide-note">价格随当前波次变化：第 1–5 波分别为 2/3/4/5/6 保费；换组固定 1 保费。</p>
+          </section>
+          <section class="sheet-section" id="enemyGuide" aria-labelledby="enemyGuideTitle">
+            <h2 id="enemyGuideTitle">敌情说明</h2>
+            <ul class="guide-list">
+              <li><b>客户</b>（小案）：普通来件，人伤目标；责任险对其伤害 ×1.5。</li>
+              <li><b>工地佬</b>（小案/精英）：抛砖攻击，可眩晕险种。</li>
+              <li><b>工地佬·大案</b>、<b>船佬·大案</b>（大案）：第 4、5 波登场，血条加粗，漏件伤害更高。</li>
+              <li>Boss 出生时屏幕横幅提示“大案来了”，不暂停战斗；同一大案只提示一次。</li>
+              <li>责任险命中会缠上绷带并定身 0.8 秒；定身不叠加，只刷新剩余时间。</li>
+            </ul>
+          </section>
           <div class="log-panel">
             <h2>查勘记录</h2>
             <ol id="log"></ol>
@@ -217,6 +239,6 @@
       }
     }, 2600);
   </script>
-  <script type="module" src="./app.js?v=0.9b.0"></script>
+  <script type="module" src="./app.js?v=0.9e.0"></script>
 </body>
 </html>
