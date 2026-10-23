@@ -2,7 +2,7 @@ import {
   CONFIG,INSURANCES,createEnvelope,cardDisplay,positionOnPath,moveEntity,mergeEntities,buyOffer,
   refreshOffers,salvage,startWave,tick,purchaseItem,startNextRun,nextActionId,actionAlreadyProcessed,
   receiptFor,recordAction,commitEnvelope,loadProfile,migrateFrom06,migrateFrom07,migrateFrom08,pauseRecoveredCombat,ratingLabel,buyCostForWave
-} from "./core.js?v=0.9b.0";
+} from "./core.js?v=0.9e.0";
 
 window.__liLePeiBooted = true;
 
