@@ -1,4 +1,4 @@
-import SPEC from "./insurance-config.json?v=0.9e.0" with { type: "json" };
+import SPEC from "./insurance-config.json?v=1.0.0" with { type: "json" };
 
 export const CONFIG = SPEC;
 const ATTACK_TEXT={
@@ -15,7 +15,11 @@ export const INSURANCES = Object.fromEntries(SPEC.towers.map(t => [t.id, {
 function EQUIPMENT_LABEL_TEXT(){return "基本";}
 // equipment mapping comes from the config (six towers); no hard-coded three-tower map.
 const EQUIPMENT_BY_TYPE=Object.fromEntries(CONFIG.towers.map(tower=>[tower.id,tower.equipment_id??null]));
-const EQUIPMENT_LABEL={basic:"基本"};
+const EQUIPMENT_LABEL=Object.fromEntries([["basic","基本"],...CONFIG.equipment.types.map(t=>[t.id,t.name])]);
+const EQUIPMENT_IDS=CONFIG.equipment.types.map(t=>t.id);
+const EQUIPMENT_SPECS=Object.fromEntries(CONFIG.equipment.types.map(t=>[t.id,t]));
+const MAX_SLOTS=CONFIG.economy.expansion.max_slot_count, FIXED_SLOTS=CONFIG.economy.expansion.fixed_slot_count, PADS=CONFIG.board.expansion_pads;
+function equipmentLabel(id){return EQUIPMENT_LABEL[id]||"基本";}
 const WAVE_BY_ID=new Map(CONFIG.waves.map(wave=>[wave.id,wave]));
 const ENEMY_BY_ID=new Map(CONFIG.enemies.map(enemy=>[enemy.id,enemy]));
 const TOWER_BY_ID=new Map(CONFIG.towers.map(tower=>[tower.id,tower]));
@@ -34,20 +38,22 @@ export function buyCostForWave(wave){
 export function validateConfigIntegrity(){
   const towers=CONFIG.towers||[];
   if(towers.length!==6||new Set(towers.map(t=>t.id)).size!==6)return{ok:false,reason:"towers must contain six unique ids"};
-  if(!["car_damage","construction","property","machine_damage","liability","marine"].every(id=>towers.some(t=>t.id===id)))return{ok:false,reason:"missing tower"};
+  if(!towers.every(t=>t.damage_by_level.length===CONFIG.economy.max_level))return{ok:false,reason:"five damage levels expected"};
   if(!Array.isArray(CONFIG.economy.buy_cost_by_wave)||CONFIG.economy.buy_cost_by_wave.length!==CONFIG.waves.length||!CONFIG.economy.buy_cost_by_wave.every(v=>Number.isInteger(v)&&v>=0))return{ok:false,reason:"bad buy_cost_by_wave"};
   if(!Array.isArray(CONFIG.economy.offer_pool)||CONFIG.economy.offer_pool.length!==CONFIG.economy.offer_weights.length||!CONFIG.economy.offer_weights.every(v=>v>0))return{ok:false,reason:"bad offer pool/weights"};
-  if(CONFIG.economy.offer_pool.length!==6||CONFIG.economy.initial_hand.length!==6)return{ok:false,reason:"six-type pool/hand expected"};
+  if(CONFIG.waves.length!==10)return{ok:false,reason:"ten waves expected"};
   const enemies=CONFIG.enemies||[];
-  if(enemies.length!==4||new Set(enemies.map(e=>e.id)).size!==4)return{ok:false,reason:"enemies must contain four unique ids"};
-  if(!["third_party_car","foreman","foreman_boss","ship_owner"].every(id=>enemies.some(e=>e.id===id)))return{ok:false,reason:"missing enemy id"};
+  if(enemies.length!==5||new Set(enemies.map(e=>e.id)).size!==5)return{ok:false,reason:"five enemies expected"};
+  if(!["third_party_car","foreman","foreman_boss","ship_owner","complaint"].every(id=>enemies.some(e=>e.id===id)))return{ok:false,reason:"missing enemy id"};
   if(!enemies.every(e=>["small","elite","boss"].includes(e.tier)&&typeof e.human_injury==="boolean"&&(!e.hp_scaling||e.hp_scaling==="flat")))return{ok:false,reason:"bad enemy tier/human_injury/hp_scaling"};
   if(enemies.filter(e=>e.human_injury).map(e=>e.id).join(",")!=="third_party_car")return{ok:false,reason:"human_injury only on third_party_car"};
-  if((CONFIG.boss.enemy_ids||[]).length!==2||!CONFIG.boss.enemy_ids.every(id=>enemies.some(e=>e.id===id&&e.tier==="boss")))return{ok:false,reason:"boss ids must be boss-tier enemies"};
+  if(!Array.isArray(CONFIG.boss.enemy_ids)||!CONFIG.boss.enemy_ids.every(id=>enemies.some(e=>e.id===id&&e.tier==="boss")))return{ok:false,reason:"boss ids must be boss-tier enemies"};
+  if(CONFIG.boss.enemy_ids.length!==3||!CONFIG.boss.enemy_ids.includes("complaint"))return{ok:false,reason:"complaint boss missing"};
   if(CONFIG.boss.banner_ms!==2000||CONFIG.boss.pause_simulation!==false||CONFIG.boss.banner_text!=="大案来了")return{ok:false,reason:"bad boss banner"};
-  const w4=CONFIG.waves[3].spawns,w5=CONFIG.waves[4].spawns;
-  if(!w4.some(s=>s.enemy==="foreman_boss"&&s.at_ms===3200)||!w5.some(s=>s.enemy==="ship_owner"&&s.at_ms===3800))return{ok:false,reason:"boss placement mismatch"};
-  for(const wave of CONFIG.waves)for(const spawn of wave.spawns)if(!enemies.some(e=>e.id===spawn.enemy))return{ok:false,reason:"spawn enemy not in roster"};
+  for(const wave of CONFIG.waves)for(const spawn of wave.spawns){const spec=enemies.find(e=>e.id===spawn.enemy);if(!spec)return{ok:false,reason:"spawn enemy not in roster"};if(spawn.hp_override!==undefined&&(spec.tier!=="boss"||!Number.isInteger(spawn.hp_override)||spawn.hp_override<=0))return{ok:false,reason:"hp_override only on bosses"};}
+  const e=CONFIG.economy.expansion;if(!e||e.fixed_slot_count!==6||e.max_slot_count!==8||JSON.stringify(e.costs_by_index)!==JSON.stringify([5,8])||CONFIG.board.expansion_pads.length!==4)return{ok:false,reason:"bad expansion config"};
+  if(!CONFIG.equipment||CONFIG.equipment.types.length!==3||!CONFIG.equipment.types.every(x=>["reinforce","aim","rush"].includes(x.id)))return{ok:false,reason:"bad equipment config"};
+  if(!Array.isArray(CONFIG.salvage.refund_cap_by_level)||CONFIG.salvage.refund_cap_by_level.length!==5)return{ok:false,reason:"bad salvage caps"};
   return{ok:true};
 }
 
@@ -57,7 +63,8 @@ function entityId(game){return "e"+String(game.next_entity_id++).padStart(8,"0")
 function makeCard(game,type,level=1,equipment=EQUIPMENT_BY_TYPE[type],salvageCredit=CONFIG.salvage.free_card_credit){return{id:entityId(game),type,level,equipment_id:equipment,salvage_credit:salvageCredit};}
 function appendLog(game,text){game.log.unshift(text);if(game.log.length>30)game.log.length=30;}
 function enemyDisplayName(spec){return spec.tier==="boss"?spec.name+"·大案":spec.name;}
-function posForOffice(index){const [col,row]=OFFICE_POSITIONS[index]||[];return col===undefined?null:{col:col+.5,row:row+.5};}
+function officePositionsFor(game){return OFFICE_POSITIONS.concat((game.pad_choices||[]).map(i=>PADS[i]));}
+function posForOffice(index,game){const positions=game?officePositionsFor(game):OFFICE_POSITIONS;const [col,row]=positions[index]||[];return col===undefined?null:{col:col+.5,row:row+.5};}
 function distance(a,b){return Math.hypot(a.col-b.col,a.row-b.row);}
 export function positionOnPath(progress){
   const path=CONFIG.board.path;
@@ -98,7 +105,8 @@ export function statsFor(game){
     leaks:game.diagnostics.leaks,
     waves_cleared:game.cleared_wave_ids.length,
     premium_earned:game.diagnostics.premium_earned,
-    rebate_earned:game.diagnostics.rebate_earned||0
+    rebate_earned:game.diagnostics.rebate_earned||0,
+    equipment_dropped:game.equipment_dropped_run||0
   };
 }
 export function settlementFor(game){
@@ -114,7 +122,7 @@ export function createGame(seed=CONFIG.simulation.default_seed){
     schema_version:CONFIG.schema_version,config_version:CONFIG.config_version,
     phase:"prep",initial_seed:initialSeed,rng_state:initialSeed,current_wave:1,
     cleared_wave_ids:[],core_hp:CONFIG.formation.base_hp,inspector_protected_until_ms:0,
-    hand:Array(CONFIG.economy.hand_capacity).fill(null),formation:Array(OFFICE_POSITIONS.length).fill(null),
+    hand:Array(CONFIG.economy.hand_capacity).fill(null),formation:Array(FIXED_SLOTS).fill(null),slot_count:FIXED_SLOTS,pad_choices:[],expansion_used_wave:0,equipment_pity:0,equipment_dropped_run:0,
     offers:[],free_refresh_left:CONFIG.economy.free_refresh_per_prep,next_entity_id:1,next_event_seq:1,next_visual_id:1,
     tick_index:0,elapsed_ms:0,wave_elapsed_ms:0,spawns_done:0,enemies:[],effects:[],visuals:[],selected:null,
     operation_seq:0,operations:[],settlement:null,wave_premium_earned:0,wave_premium_spent:0,
@@ -127,7 +135,7 @@ export function createGame(seed=CONFIG.simulation.default_seed){
 function newProfileId(){return globalThis.crypto?.randomUUID?.()||("profile-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10));}
 function blankInventory(){return Object.fromEntries(INVENTORY_IDS.map(id=>[id,0]));}
 export function createEnvelope(seed=CONFIG.simulation.default_seed,{profileId=newProfileId(),premium=CONFIG.profile.first_grant,grantApplied=true,teachingDone=false,rebate=0}={}){
-  const runSeq=1,game=createGame(seed);return{format_id:PROFILE_FORMAT,envelope_schema_version:CONFIG.persistence.envelope_schema_version,config_version:CONFIG.config_version,revision:0,profile:{profile_id:profileId,premium,rebate,inventory:blankInventory(),first_grant_applied:grantApplied,teaching_done:teachingDone,import_source:null,action_seq:0,receipts:[]},run:{run_seq:runSeq,run_id:profileId+":run:"+runSeq,status:"active",closed_run_seq:0,items_used:blankInventory()},game};
+  const runSeq=1,game=createGame(seed);return{format_id:PROFILE_FORMAT,envelope_schema_version:CONFIG.persistence.envelope_schema_version,config_version:CONFIG.config_version,revision:0,profile:{profile_id:profileId,premium,rebate,inventory:blankInventory(),equipment_owned:{reinforce:0,aim:0,rush:0},first_grant_applied:grantApplied,teaching_done:teachingDone,teaching_stage:teachingDone?CONFIG.teaching.stages_total:0,import_source:null,action_seq:0,receipts:[]},run:{run_seq:runSeq,run_id:profileId+":run:"+runSeq,status:"active",closed_run_seq:0,items_used:blankInventory()},game};
 }
 export function nextActionId(envelope){return envelope.profile.profile_id+":"+(envelope.profile.action_seq+1);}
 export function receiptFor(envelope,actionId){return envelope.profile.receipts.find(item=>item.action_id===actionId)||null;}
@@ -142,7 +150,7 @@ export function startNextRun(envelope,seed=envelope.game.initial_seed,actionId=n
 }
 export function cardDisplay(card){
   const info=INSURANCES[card.type]||{name:card.type,glyph:"?",attack:"未知险种。"};
-  return{id:card.id,name:info.name,glyph:info.glyph,level:card.level,equipment:card.equipment_id?EQUIPMENT_LABEL_TEXT():card.equipment_id||"不适用",equipment_id:card.equipment_id,attack:info.attack};
+  return{id:card.id,name:info.name,glyph:info.glyph,level:card.level,equipment:equipmentLabel(card.equipment_id),equipment_id:card.equipment_id,attack:info.attack};
 }
 function indexOfRef(ref,game){
   if(!ref||!["hand","formation","offer"].includes(ref.area))return-1;
@@ -154,8 +162,7 @@ function recordOperation(game,action,source,target){game.operation_seq++;game.op
 function gameSaveInto(game,draft){for(const key of Object.keys(game))delete game[key];Object.assign(game,draft);}
 function canMerge(a,b){
   if(a.type!==b.type||a.level!==b.level)return"只能合成同类、同级条款。";
-  if(a.level>=CONFIG.economy.max_level)return"已到当前三级试验上限，无法继续合成。";
-  if(a.equipment_id!==b.equipment_id||a.equipment_id!==EQUIPMENT_BY_TYPE[a.type])return"装备不兼容或存档版本不支持，未执行合成。";
+  if(a.level>=CONFIG.economy.max_level)return"已到五级上限，无法继续合成。";
   return null;
 }
 export function moveEntity(game,source,target){
@@ -178,7 +185,8 @@ export function mergeEntities(game,source,target){
   if(!a||!b)return{ok:false,reason:"需要两份已存在的条款才能合成。"};
   const reason=canMerge(a,b);if(reason)return{ok:false,reason};
   const draft=clone(game),from=listAt(draft,source.area),to=listAt(draft,target.area);
-  to[ti]={id:entityId(draft),type:a.type,level:a.level+1,equipment_id:a.equipment_id,salvage_credit:(a.salvage_credit||0)+(b.salvage_credit||0)};from[si]=null;draft.selected=null;
+  const nextLevel=a.level+1;const cap=CONFIG.salvage.refund_cap_by_level[nextLevel-1]||0;const equipment=b.equipment_id&&b.equipment_id!=="basic"?b.equipment_id:(a.equipment_id&&a.equipment_id!=="basic"?a.equipment_id:EQUIPMENT_BY_TYPE[a.type]);
+  to[ti]={id:entityId(draft),type:a.type,level:nextLevel,equipment_id:equipment,salvage_credit:Math.min(cap,(a.salvage_credit||0)+(b.salvage_credit||0))};from[si]=null;draft.selected=null;
   recordOperation(draft,"merge",source,target);appendLog(draft,INSURANCES[a.type].name+"升至"+(a.level+1)+"级。");gameSaveInto(game,draft);return{ok:true,merged:true};
 }
 // 0.7 kept a buy-and-place helper; 0.8 never wires it (kept only as dead code for rollback reference).
@@ -229,6 +237,61 @@ export function salvage(game,profile,ref,confirm=true){
   const cap=CONFIG.salvage.refund_cap_by_level[card.level-1]||0,refund=Math.min(cap,card.salvage_credit||0,CONFIG.profile.premium_cap-profile.premium),draft=clone(game),profileDraft=clone(profile);listAt(draft,ref.area)[i]=null;draft.selected=null;profileDraft.premium+=refund;draft.diagnostics.premium_earned+=refund;recordOperation(draft,"salvage",ref,null);appendLog(draft,"回收"+INSURANCES[card.type].name+"条款，返还"+refund+"保费。");gameSaveInto(game,draft);Object.assign(profile,profileDraft);return{ok:true,refund,credit:card.salvage_credit||0};
 }
 function sameRef(a,b){return a&&b&&a.area===b.area&&a.index===b.index;}
+export function expansionCost(game){if(game.slot_count>=MAX_SLOTS)return null;return CONFIG.economy.expansion.costs_by_index[game.slot_count-FIXED_SLOTS]??null;}
+export function expandFormation(game,profile,padIndex){
+  if(game.phase!=="prep")return{ok:false,reason:"布防阶段才能扩建。"};
+  if(game.slot_count>=MAX_SLOTS)return{ok:false,reason:"扩建已满 8/8。"};
+  if(game.expansion_used_wave===game.current_wave)return{ok:false,reason:"本波已扩建。"};
+  if(!Number.isInteger(padIndex)||padIndex<0||padIndex>=PADS.length||game.pad_choices.includes(padIndex))return{ok:false,reason:"请选择一块未使用的空地。"};
+  const cost=expansionCost(game);if(cost===null)return{ok:false,reason:"扩建已满 8/8。"};
+  if(profile.premium<cost)return{ok:false,reason:"保费不足：扩建需要 "+cost+" 保费。"};
+  const draft=clone(game),profileDraft=clone(profile);profileDraft.premium-=cost;draft.slot_count+=1;draft.pad_choices.push(padIndex);draft.expansion_used_wave=draft.current_wave;draft.formation.push(null);draft.selected=null;
+  recordOperation(draft,"expand",null,{pad_index:padIndex});appendLog(draft,"扩建办公位（第"+draft.slot_count+"位），支出"+cost+"保费。");gameSaveInto(game,draft);Object.assign(profile,profileDraft);return{ok:true,cost,slotIndex:draft.slot_count-1};
+}
+export function equipmentAssignedCount(game,id){return game.formation.filter(t=>t&&t.equipment_id===id).length;}
+export function equipTower(game,profile,index,equipmentId){
+  if(game.phase!=="prep")return{ok:false,reason:"布防阶段才能更换装备。"};
+  const tower=game.formation[index];if(!tower)return{ok:false,reason:"请选择一个已布置的办公位。"};
+  if(equipmentId===null||equipmentId==="basic")return unequipTower(game,profile,index);
+  if(!EQUIPMENT_IDS.includes(equipmentId))return{ok:false,reason:"装备无效。"};
+  if((profile.equipment_owned?.[equipmentId]||0)<=0)return{ok:false,reason:"未持有该类装备。"};
+  const assigned=equipmentAssignedCount(game,equipmentId);
+  if(assigned>=(profile.equipment_owned[equipmentId]||0)&&tower.equipment_id!==equipmentId)return{ok:false,reason:"可用装备不足：先卸下其它塔上的同类装备。"};
+  const draft=clone(game);draft.formation[index].equipment_id=equipmentId;draft.selected={area:"formation",index};recordOperation(draft,"equip",{area:"formation",index},null);appendLog(draft,"已装备"+equipmentLabel(equipmentId)+"。");gameSaveInto(game,draft);return{ok:true};
+}
+export function unequipTower(game,profile,index){
+  if(game.phase!=="prep")return{ok:false,reason:"布防阶段才能更换装备。"};
+  const tower=game.formation[index];if(!tower)return{ok:false,reason:"请选择一个已布置的办公位。"};
+  if(!tower.equipment_id||tower.equipment_id==="basic")return{ok:false,reason:"该塔没有可卸下的装备。"};
+  const draft=clone(game);draft.formation[index].equipment_id=EQUIPMENT_BY_TYPE[tower.type];recordOperation(draft,"unequip",{area:"formation",index},null);appendLog(draft,"已卸下"+equipmentLabel(tower.equipment_id)+"。");gameSaveInto(game,draft);return{ok:true};
+}
+function towerStats(spec,tower){
+  let damage=spec.damage_by_level[tower.level-1],radius=spec.radius_cells,period=spec.attack_period_ms;
+  const eq=TOWER_EQUIPMENT.get(tower.equipment_id);
+  if(eq?.effect==="damage_multiplier")damage=Math.round(damage*eq.value);
+  if(eq?.effect==="radius_multiplier")radius=radius*eq.value;
+  if(eq?.effect==="attack_period_multiplier")period=Math.round(period*eq.value);
+  return{damage,radius,period};
+}
+const TOWER_EQUIPMENT=new Map(CONFIG.equipment.types.map(t=>[t.id,t]));
+export function towerEffectiveStats(tower){const spec=TOWER_BY_ID.get(tower.type);return towerStats(spec,tower);}
+function isBossWave(wave){return WAVE_BY_ID.get(wave).spawns.some(s=>ENEMY_BY_ID.get(s.enemy)?.tier==="boss");}
+function grantEquipment(game,profile,reason){
+  if(game.equipment_dropped_run>=CONFIG.equipment.drop.max_per_run)return false;
+  const pool=CONFIG.equipment.drop.pool,total=pool.reduce((s,x)=>s+x.weight,0);let roll=nextUint32(game)/4294967296*total,id=pool.at(-1).id;
+  for(const item of pool){roll-=item.weight;if(roll<0){id=item.id;break;}}
+  if((profile.equipment_owned[id]||0)>=CONFIG.equipment.inventory.per_type_cap){const credited=creditPremium(profile,game,CONFIG.equipment.drop.overflow_convert.amount);appendLog(game,CONFIG.equipment.drop.ui.full_text+"（+" +credited+" 保费）");}
+  else{profile.equipment_owned[id]=(profile.equipment_owned[id]||0)+1;appendLog(game,CONFIG.equipment.drop.ui.toast_prefix+EQUIPMENT_LABEL[id]);}
+  game.equipment_dropped_run+=1;game.equipment_pity=0;recordOperation(game,"equipment-drop",null,{id,reason});return true;
+}
+function rollEquipmentDrop(game,profile,wave){
+  if(game.equipment_dropped_run>=CONFIG.equipment.drop.max_per_run)return;
+  const boss=isBossWave(wave),chance=CONFIG.equipment.drop.normal_wave_chance;
+  const guaranteed=boss||game.equipment_pity>=CONFIG.equipment.drop.pity_after-1;
+  const rolled=!boss&&!guaranteed&&(nextUint32(game)/4294967296)<chance;
+  if(guaranteed||rolled){if(grantEquipment(game,profile,boss?"boss":"wave"))appendLog(game,boss?CONFIG.equipment.drop.ui.boss_text:"守波掉落装备。");}
+  else game.equipment_pity=Math.min(CONFIG.equipment.drop.pity_after-1,game.equipment_pity+1);
+}
 export function startWave(game){
   if(game.phase!=="prep")return false;if(!game.formation.some(Boolean))appendLog(game,"提示：当前没有部署险种。");
   game.selected=null;
@@ -239,7 +302,7 @@ export function startWave(game){
 function spawnEnemy(game,spawn){
   const spec=ENEMY_BY_ID.get(spawn.enemy),wave=WAVE_BY_ID.get(game.current_wave),hpMultiplier=wave.enemy_hp_multiplier||1;
   // 0.9c: bosses use hp_scaling="flat" (absolute HP, no wave multiplier); everything else keeps the wave multiplier.
-  const spawnHp=spec.hp_scaling==="flat"?Math.round(spec.hp):Math.round(spec.hp*hpMultiplier);
+  const spawnHp=Number.isInteger(spawn.hp_override)?Math.round(spawn.hp_override):spec.hp_scaling==="flat"?Math.round(spec.hp):Math.round(spec.hp*hpMultiplier);
   game.enemies.push({id:entityId(game),type:spawn.enemy,y:0,hp:spawnHp,max_hp:spawnHp,speed:spec.speed*(wave.enemy_speed_multiplier||1),slow_until_ms:0,root_until_ms:0,windup_ends_ms:0,target_id:null,cooldown_until_ms:0});
 }
 function removeDead(game){game.enemies=game.enemies.filter(enemy=>enemy.hp>0);}
@@ -298,7 +361,7 @@ function clearRoots(game){for(const enemy of game.enemies)enemy.root_until_ms=0;
 function stunTower(game,tower){if(game.elapsed_ms<tower.stunned_until_ms||game.elapsed_ms<tower.protected_until_ms)return;tower.stunned_until_ms=game.elapsed_ms+CONFIG.stun.duration_ms;tower.protected_until_ms=tower.stunned_until_ms+CONFIG.stun.immunity_after_recovery_ms;game.diagnostics.stuns++;appendLog(game,INSURANCES[tower.type].name+"受击，短暂眩晕。");}
 function targetTower(game,enemy,spec){
   const enemyPos=positionOnPath(enemy.y);
-  return game.formation.map((tower,index)=>({tower,index,distance:distance(enemyPos,posForOffice(index))})).filter(item=>item.tower&&item.distance<=spec.attack_range_cells).sort((a,b)=>a.distance-b.distance||a.index-b.index)[0]||null;
+  return game.formation.map((tower,index)=>({tower,index,distance:distance(enemyPos,posForOffice(index,game))})).filter(item=>item.tower&&item.distance<=spec.attack_range_cells).sort((a,b)=>a.distance-b.distance||a.index-b.index)[0]||null;
 }
 function updateEnemies(game,profile){
   for(const enemy of [...game.enemies].sort((a,b)=>a.id.localeCompare(b.id))){
@@ -313,10 +376,10 @@ function updateEnemies(game,profile){
   }removeDead(game);
 }
 function towerAttack(game,tower,officeIndex){
-  const spec=TOWER_BY_ID.get(tower.type),origin=posForOffice(officeIndex);
-  const target=game.enemies.filter(enemy=>enemy.hp>0).map(enemy=>({enemy,pos:positionOnPath(enemy.y)})).filter(item=>distance(origin,item.pos)<=spec.radius_cells).sort((a,b)=>a.enemy.y-b.enemy.y||a.enemy.id.localeCompare(b.enemy.id))[0];
+  const spec=TOWER_BY_ID.get(tower.type),origin=posForOffice(officeIndex,game),mods=towerStats(spec,tower);
+  const target=game.enemies.filter(enemy=>enemy.hp>0).map(enemy=>({enemy,pos:positionOnPath(enemy.y)})).filter(item=>distance(origin,item.pos)<=mods.radius).sort((a,b)=>a.enemy.y-b.enemy.y||a.enemy.id.localeCompare(b.enemy.id))[0];
   if(!target)return;const delay=spec.impact_delay_ms,targetPos=target.pos;
-  const base={x:targetPos.col,y:targetPos.row,radius_cells:spec.radius_cells,source_id:tower.id,damage:spec.damage_by_level[tower.level-1],seq:game.next_event_seq++};
+  const base={x:targetPos.col,y:targetPos.row,radius_cells:mods.radius,source_id:tower.id,damage:mods.damage,seq:game.next_event_seq++};
   const shotByEffect={exploding_car:"car-shot",slope_impact:"rock-shot",fire_zone:"flame-shot",overload:"machine-shot",intercept:"seal-shot",tidal_wave:"wave-shot"};
   pushVisual(game,shotByEffect[spec.effect]||"car-shot",{from_x:origin.col,from_y:origin.row,to_x:targetPos.col,to_y:targetPos.row,x:targetPos.col,y:targetPos.row},Math.max(delay+260,520));
   if(spec.effect==="fire_zone")pushEffect(game,{...base,kind:"fire-create",due_ms:game.elapsed_ms+delay,remaining_ticks:0});
@@ -324,7 +387,7 @@ function towerAttack(game,tower,officeIndex){
     const kindByEffect={exploding_car:"car",slope_impact:"construction",overload:"machine",intercept:"seal",tidal_wave:"wave"};
     pushEffect(game,{...base,kind:kindByEffect[spec.effect]||"car",due_ms:game.elapsed_ms+delay,slow_duration_ms:spec.slow_duration_ms||0,root_duration_ms:spec.root_duration_ms||0,human_injury_multiplier:spec.human_injury_multiplier||0});
   }
-  tower.cooldown_ms=spec.attack_period_ms;game.diagnostics.attacks++;
+  tower.cooldown_ms=mods.period;game.diagnostics.attacks++;
 }
 function updateTowers(game){for(let index=0;index<game.formation.length;index++){
   const tower=game.formation[index];if(!tower||game.elapsed_ms<tower.stunned_until_ms)continue;
@@ -348,11 +411,12 @@ function finishWave(game,profile,run){
     appendLog(game,"第"+wave+"波守住，获得"+credited+"保费。");
     const rebate=creditRebate(game,profile);
     if(rebate>0)appendLog(game,"本波返利 +"+rebate+"。");
+    rollEquipmentDrop(game,profile,wave);
     // Counters belong to the wave just settled; reset before the next prep so new spending starts from 0.
     game.wave_premium_earned=0;game.wave_premium_spent=0;
   }
   recordOperation(game,"wave-clear",null,null);
-  if(wave>=CONFIG.waves.length){game.phase="victory";game.settlement=settlementFor(game);run.status="terminal";run.closed_run_seq=run.run_seq;appendLog(game,"MVP五波完成。");}
+  if(wave>=CONFIG.waves.length){const bonus=CONFIG.equipment.drop.settlement_bonus;if(game.equipment_dropped_run<bonus.if_run_dropped_less_than)grantEquipment(game,profile,"victory_bonus");game.phase="victory";game.settlement=settlementFor(game);run.status="terminal";run.closed_run_seq=run.run_seq;appendLog(game,"十波完成，案件结案。");}
   else{game.current_wave=wave+1;game.phase="prep";game.inspector_protected_until_ms=0;game.free_refresh_left=CONFIG.economy.free_refresh_per_prep;game.formation.forEach(t=>{if(t){t.cooldown_ms=0;t.stunned_until_ms=0;t.protected_until_ms=0;}});}
 }
 function validateItemUse(game,profile,run,itemId){
@@ -376,20 +440,29 @@ export function tick(game,profile,run,itemId=null){
 }
 
 function validateGameShape(game,{schemaVersion,configVersion,maxWave,settlementMode}){
-  const modern=settlementMode==="v08"||settlementMode==="v09";
-  const diagnostics08=modern;
-  const rootMode=settlementMode==="v09";
+  const v10=settlementMode==="v10";
+  const modern=settlementMode==="v08"||settlementMode==="v09"||v10;
+  const rootMode=settlementMode==="v09"||v10;
   if(!game||game.schema_version!==schemaVersion||game.config_version!==configVersion||!['prep','combat','paused','victory','defeat'].includes(game.phase)||Object.hasOwn(game,"points")||game.wave_start_snapshot!=null)return false;
   if(!Number.isInteger(game.current_wave)||game.current_wave<1||game.current_wave>maxWave||!Number.isInteger(game.rng_state)||game.rng_state===0)return false;
   if(!Number.isInteger(game.next_entity_id)||game.next_entity_id<1||!Number.isInteger(game.free_refresh_left)||game.free_refresh_left<0||game.free_refresh_left>CONFIG.economy.free_refresh_per_prep)return false;
   if(!Number.isSafeInteger(game.tick_index)||game.tick_index<0||game.tick_index>10000000||!Number.isSafeInteger(game.elapsed_ms)||game.elapsed_ms<0||game.elapsed_ms!==game.tick_index*CONFIG.simulation.tick_ms)return false;
   if(!Number.isSafeInteger(game.wave_elapsed_ms)||game.wave_elapsed_ms<0||game.wave_elapsed_ms>game.elapsed_ms||!Number.isInteger(game.spawns_done)||game.spawns_done<0||game.spawns_done>100000)return false;
-  if(!Array.isArray(game.hand)||game.hand.length!==CONFIG.economy.hand_capacity||!Array.isArray(game.formation)||game.formation.length!==OFFICE_POSITIONS.length||!Array.isArray(game.offers)||game.offers.length!==CONFIG.economy.offer_count)return false;
+  if(!Array.isArray(game.hand)||game.hand.length!==CONFIG.economy.hand_capacity||!Array.isArray(game.formation)||!Array.isArray(game.offers)||game.offers.length!==CONFIG.economy.offer_count)return false;
+  const slotOk=v10?Number.isInteger(game.slot_count)&&game.slot_count>=FIXED_SLOTS&&game.slot_count<=MAX_SLOTS&&game.formation.length===game.slot_count:game.formation.length===FIXED_SLOTS;
+  if(!slotOk)return false;
+  if(v10){
+    if(!Array.isArray(game.pad_choices)||game.pad_choices.length!==game.slot_count-FIXED_SLOTS||new Set(game.pad_choices).size!==game.pad_choices.length||!game.pad_choices.every(i=>Number.isInteger(i)&&i>=0&&i<PADS.length))return false;
+    if(!Number.isInteger(game.expansion_used_wave)||game.expansion_used_wave<0||game.expansion_used_wave>game.current_wave)return false;
+    if(!Number.isInteger(game.equipment_pity)||game.equipment_pity<0||game.equipment_pity>CONFIG.equipment.drop.pity_after)return false;
+    if(!Number.isInteger(game.equipment_dropped_run)||game.equipment_dropped_run<0||game.equipment_dropped_run>CONFIG.equipment.drop.max_per_run)return false;
+  }
   if(!Number.isInteger(game.core_hp)||game.core_hp<0||game.core_hp>CONFIG.formation.base_hp||!Number.isSafeInteger(game.inspector_protected_until_ms)||game.inspector_protected_until_ms<0||game.inspector_protected_until_ms>game.elapsed_ms+CONFIG.items.outside_liability.duration_ms||!Array.isArray(game.enemies)||!Array.isArray(game.effects)||!Array.isArray(game.visuals)||!Array.isArray(game.cleared_wave_ids))return false;
   if(game.phase!=="combat"&&game.phase!=="paused"&&game.inspector_protected_until_ms!==0)return false;
   const cards=[...game.hand,...game.formation].filter(Boolean),entities=cards.concat(game.offers,game.enemies),ids=entities.map(entity=>entity.id);if(new Set(ids).size!==ids.length||!entities.every(entity=>typeof entity.id==="string"&&/^e[0-9]{8,}$/.test(entity.id)))return false;
   const highestId=entities.reduce((highest,entity)=>Math.max(highest,Number(entity.id.slice(1))),0);if(game.next_entity_id<=highestId)return false;
-  const refundCaps=CONFIG.salvage.refund_cap_by_level;if(!cards.every(card=>TOWER_BY_ID.has(card.type)&&Number.isInteger(card.level)&&card.level>=1&&card.level<=CONFIG.economy.max_level&&card.equipment_id===EQUIPMENT_BY_TYPE[card.type]&&Number.isSafeInteger(card.salvage_credit)&&card.salvage_credit>=0&&card.salvage_credit<=refundCaps[card.level-1]))return false;
+  const refundCaps=CONFIG.salvage.refund_cap_by_level;
+  if(!cards.every(card=>TOWER_BY_ID.has(card.type)&&Number.isInteger(card.level)&&card.level>=1&&card.level<=CONFIG.economy.max_level&&(!v10||card.equipment_id===null||card.equipment_id==="basic"||EQUIPMENT_IDS.includes(card.equipment_id))&&Number.isSafeInteger(card.salvage_credit)&&card.salvage_credit>=0&&card.salvage_credit<=refundCaps[card.level-1]))return false;
   if(!game.offers.every(card=>card&&card.level===1&&CONFIG.economy.offer_pool.includes(card.type)))return false;
   if(!game.enemies.every(enemy=>ENEMY_BY_ID.has(enemy.type)&&Number.isInteger(enemy.y)&&enemy.y>=0&&enemy.y<=100000&&Number.isSafeInteger(enemy.max_hp)&&enemy.max_hp>0&&Number.isSafeInteger(enemy.hp)&&enemy.hp>=0&&enemy.hp<=enemy.max_hp&&Number.isFinite(enemy.speed)&&enemy.speed>0&&Number.isSafeInteger(enemy.windup_ends_ms)&&enemy.windup_ends_ms>=0&&Number.isSafeInteger(enemy.cooldown_until_ms)&&enemy.cooldown_until_ms>=0))return false;
   if(rootMode){
@@ -408,10 +481,11 @@ function validateGameShape(game,{schemaVersion,configVersion,maxWave,settlementM
     if(!terminal){if(game.settlement!==null)return false;}
     else{
       const s=game.settlement;if(!s||typeof s!=="object"||!Number.isInteger(s.wave)||s.wave<1||s.wave>CONFIG.waves.length||s.result!==game.phase||!s.stats||typeof s.stats!=="object")return false;
-      const stats=s.stats;const statKeys=modern?["kills","leaks","waves_cleared","premium_earned","rebate_earned"]:["kills","leaks","waves_cleared","premium_earned"];
+      const stats=s.stats;const statKeys=v10?["kills","leaks","waves_cleared","premium_earned","rebate_earned","equipment_dropped"]:modern?["kills","leaks","waves_cleared","premium_earned","rebate_earned"]:["kills","leaks","waves_cleared","premium_earned"];
       if(!statKeys.every(key=>Number.isSafeInteger(stats[key])&&stats[key]>=0))return false;
       if(stats.kills!==game.diagnostics.kills||stats.leaks!==game.diagnostics.leaks||stats.waves_cleared!==game.cleared_wave_ids.length||stats.premium_earned!==game.diagnostics.premium_earned)return false;
       if(modern&&stats.rebate_earned!==game.diagnostics.rebate_earned)return false;
+      if(v10&&stats.equipment_dropped!==game.equipment_dropped_run)return false;
       if(game.phase==="victory"){if(game.core_hp<1||game.core_hp>CONFIG.formation.base_hp)return false;if(s.rating!==ratingFor(game.core_hp))return false;}
       else{if(game.core_hp!==0||s.rating!==null)return false;}
     }
@@ -421,14 +495,18 @@ function validateGameShape(game,{schemaVersion,configVersion,maxWave,settlementM
   }
   return true;
 }
-export function validateGame(game){return validateGameShape(game,{schemaVersion:CONFIG.schema_version,configVersion:CONFIG.config_version,maxWave:CONFIG.waves.length,settlementMode:"v09"});}
+export function validateGame(game){return validateGameShape(game,{schemaVersion:CONFIG.schema_version,configVersion:CONFIG.config_version,maxWave:CONFIG.waves.length,settlementMode:"v10"});}
 export function validateEnvelope(envelope){
   if(!envelope||envelope.format_id!==PROFILE_FORMAT||envelope.envelope_schema_version!==CONFIG.persistence.envelope_schema_version||envelope.config_version!==CONFIG.config_version||!Number.isSafeInteger(envelope.revision)||envelope.revision<0||!envelope.profile||!envelope.run||!validateGame(envelope.game))return false;
   const p=envelope.profile,r=envelope.run;
   if(typeof p.profile_id!=="string"||!p.profile_id||p.first_grant_applied!==true||typeof p.teaching_done!=="boolean")return false;
+  if(!Number.isSafeInteger(p.teaching_stage)||p.teaching_stage<0||p.teaching_stage>CONFIG.teaching.stages_total)return false;
   if(!Number.isSafeInteger(p.premium)||p.premium<0||p.premium>CONFIG.profile.premium_cap)return false;
   if(!Number.isSafeInteger(p.rebate)||p.rebate<0||p.rebate>CONFIG.profile.rebate_cap)return false;
   if(!p.inventory||!p.receipts||!Array.isArray(p.receipts)||p.receipts.length>CONFIG.profile.receipt_limit||!Number.isSafeInteger(p.action_seq)||p.action_seq<0)return false;
+  if(!p.equipment_owned||!EQUIPMENT_IDS.every(id=>Number.isInteger(p.equipment_owned[id])&&p.equipment_owned[id]>=0&&p.equipment_owned[id]<=CONFIG.equipment.inventory.per_type_cap)||Object.keys(p.equipment_owned).length!==EQUIPMENT_IDS.length)return false;
+  const assigned=Object.fromEntries(EQUIPMENT_IDS.map(id=>[id,0]));for(const tower of envelope.game.formation.filter(Boolean)){if(EQUIPMENT_IDS.includes(tower.equipment_id))assigned[tower.equipment_id]++;}
+  if(EQUIPMENT_IDS.some(id=>assigned[id]>p.equipment_owned[id]))return false;
   if(p.import_source!==null){const s=p.import_source;if(typeof s!=="object"||typeof s.key!=="string"||typeof s.config_version!=="string"||!Number.isSafeInteger(s.game_schema_version)||!Number.isSafeInteger(s.raw_length)||s.raw_length<0||typeof s.fnv1a32!=="string"||!s.fnv1a32||typeof s.imported_at!=="string")return false;}
   if(INVENTORY_IDS.some(id=>!Number.isInteger(p.inventory[id])||p.inventory[id]<0||p.inventory[id]>CONFIG.profile.inventory_cap_per_item)||Object.keys(p.inventory).length!==INVENTORY_IDS.length)return false;
   if(typeof r.run_id!=="string"||!Number.isSafeInteger(r.run_seq)||r.run_seq<1||r.run_id!==p.profile_id+":run:"+r.run_seq||!Number.isSafeInteger(r.closed_run_seq)||r.closed_run_seq<0||r.closed_run_seq>r.run_seq||!['active','terminal'].includes(r.status)||!r.items_used)return false;
@@ -452,9 +530,12 @@ function settleImportGame(game,{fromVersion}){
   game.diagnostics=game.diagnostics||{};
   if(!Number.isSafeInteger(game.diagnostics.rebate_earned)||fromVersion!=="INS-MVP-0.8")game.diagnostics.rebate_earned=0;
   game.wave_premium_earned=0;game.wave_premium_spent=0;
+  game.slot_count=FIXED_SLOTS;game.pad_choices=[];game.expansion_used_wave=0;game.equipment_pity=0;game.equipment_dropped_run=0;
+  if(!Array.isArray(game.formation))game.formation=Array(FIXED_SLOTS).fill(null);while(game.formation.length<FIXED_SLOTS)game.formation.push(null);
   for(const enemy of game.enemies||[])enemy.root_until_ms=0;
   if(game.phase==="combat"||game.phase==="paused")game.phase="paused";
   game.settlement=(game.phase==="victory"||game.phase==="defeat")?settlementFor(game):null;
+  if(game.settlement)game.settlement.stats.equipment_dropped=0;
   return game;
 }
 function validateEnvelopeBase(envelope,{format,envelopeVersion,gameSchema,configVersion,maxWaves,settlementMode}){
@@ -469,31 +550,23 @@ function validateEnvelopeBase(envelope,{format,envelopeVersion,gameSchema,config
   if(r.status==="terminal"&&r.closed_run_seq!==r.run_seq)return false;if(r.status==="active"&&r.closed_run_seq!==r.run_seq-1)return false;
   return true;
 }
+export function validateImport09Envelope(envelope){return validateEnvelopeBase(envelope,{format:"insurance-profile-0.9",envelopeVersion:4,gameSchema:6,configVersion:"INS-MVP-0.9",maxWaves:5,settlementMode:"v09"});}
 export function validateImport08Envelope(envelope){return validateEnvelopeBase(envelope,{format:"insurance-profile-0.8",envelopeVersion:3,gameSchema:5,configVersion:"INS-MVP-0.8",maxWaves:5,settlementMode:"v08"});}
 export function validateImport07Envelope(envelope){return validateEnvelopeBase(envelope,{format:"insurance-profile-0.7",envelopeVersion:2,gameSchema:4,configVersion:"INS-MVP-0.7",maxWaves:5,settlementMode:"v07"});}
 export function validateImport06Envelope(envelope){return validateEnvelopeBase(envelope,{format:"insurance-profile-0.5",envelopeVersion:1,gameSchema:3,configVersion:"INS-UI-0.5",maxWaves:3,settlementMode:"v06"});}
-
-function migrateTo09(envelope,source,fromVersion,now){
+function migrateTo10(envelope,source,fromVersion,now){
   const raw=typeof source?.raw==="string"?source.raw:JSON.stringify(envelope);
   const game=clone(envelope.game);settleImportGame(game,{fromVersion});
-  const rebate=fromVersion==="INS-MVP-0.8"?(envelope.profile.rebate||0):0;
-  const fromSchema=fromVersion==="INS-MVP-0.8"?5:fromVersion==="INS-MVP-0.7"?4:3;
-  const migrated={format_id:PROFILE_FORMAT,envelope_schema_version:CONFIG.persistence.envelope_schema_version,config_version:CONFIG.config_version,revision:0,profile:{profile_id:envelope.profile.profile_id,premium:envelope.profile.premium,rebate,inventory:clone(envelope.profile.inventory),first_grant_applied:true,teaching_done:true,import_source:{key:source?.key||"",config_version:fromVersion,game_schema_version:fromSchema,raw_length:raw.length,fnv1a32:fingerprint(raw),imported_at:now},action_seq:envelope.profile.action_seq,receipts:[]},run:clone(envelope.run),game};
+  const fromSchema=fromVersion==="INS-MVP-0.9"?6:fromVersion==="INS-MVP-0.8"?5:fromVersion==="INS-MVP-0.7"?4:3;
+  const rebate=fromVersion==="INS-MVP-0.8"?(envelope.profile.rebate||0):(envelope.profile.rebate||0);
+  const migrated={format_id:PROFILE_FORMAT,envelope_schema_version:CONFIG.persistence.envelope_schema_version,config_version:CONFIG.config_version,revision:0,profile:{profile_id:envelope.profile.profile_id,premium:envelope.profile.premium,rebate,inventory:clone(envelope.profile.inventory),equipment_owned:{reinforce:0,aim:0,rush:0},first_grant_applied:true,teaching_done:true,teaching_stage:CONFIG.teaching.stages_total,import_source:{key:source?.key||"",config_version:fromVersion,game_schema_version:fromSchema,raw_length:raw.length,fnv1a32:fingerprint(raw),imported_at:now},action_seq:envelope.profile.action_seq,receipts:[]},run:clone(envelope.run),game};
   if(!validateEnvelope(migrated))return{ok:false,reason:"迁移后的案卷校验失败，未写入。"};
   return{ok:true,envelope:migrated};
 }
-export function migrateFrom08(envelope,source,now=new Date().toISOString()){
-  if(!validateImport08Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};
-  return migrateTo09(envelope,source,"INS-MVP-0.8",now);
-}
-export function migrateFrom07(envelope,source,now=new Date().toISOString()){
-  if(!validateImport07Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};
-  return migrateTo09(envelope,source,"INS-MVP-0.7",now);
-}
-export function migrateFrom06(envelope,source,now=new Date().toISOString()){
-  if(!validateImport06Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};
-  return migrateTo09(envelope,source,"INS-UI-0.5",now);
-}
+export function migrateFrom09(envelope,source,now=new Date().toISOString()){if(!validateImport09Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};return migrateTo10(envelope,source,"INS-MVP-0.9",now);}
+export function migrateFrom08(envelope,source,now=new Date().toISOString()){if(!validateImport08Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};return migrateTo10(envelope,source,"INS-MVP-0.8",now);}
+export function migrateFrom07(envelope,source,now=new Date().toISOString()){if(!validateImport07Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};return migrateTo10(envelope,source,"INS-MVP-0.7",now);}
+export function migrateFrom06(envelope,source,now=new Date().toISOString()){if(!validateImport06Envelope(envelope))return{ok:false,reason:"旧案卷校验未通过，未迁移。"};return migrateTo10(envelope,source,"INS-UI-0.5",now);}
 export function loadProfile(storage=globalThis.localStorage){
   if(!storage)return{kind:"unavailable",reason:"本地保存不可用。"};
   let nativeRaw;try{nativeRaw=storage.getItem(PROFILE_KEY);}catch{return{kind:"unavailable",reason:"无法读取保存档案。"};}
@@ -504,12 +577,10 @@ export function loadProfile(storage=globalThis.localStorage){
   for(const source of IMPORT_SOURCES){
     let raw;try{raw=storage.getItem(source.key);}catch{return{kind:"unavailable",reason:"无法读取旧案卷。"};}
     if(raw===null)continue;
-    const format=source.format_id;
-    const kind=format==="insurance-profile-0.8"?"import08":format==="insurance-profile-0.7"?"import07":"import06";
-    const corruptKind="corrupt_"+kind;
+    const format=source.format_id,kind=format==="insurance-profile-0.9"?"import09":format==="insurance-profile-0.8"?"import08":format==="insurance-profile-0.7"?"import07":"import06",corruptKind="corrupt_"+kind;
     try{
       const envelope=JSON.parse(raw);
-      const valid=kind==="import08"?validateImport08Envelope(envelope):kind==="import07"?validateImport07Envelope(envelope):validateImport06Envelope(envelope);
+      const valid=kind==="import09"?validateImport09Envelope(envelope):kind==="import08"?validateImport08Envelope(envelope):kind==="import07"?validateImport07Envelope(envelope):validateImport06Envelope(envelope);
       if(!valid)return{kind:corruptKind,reason:"旧案卷无法读取；原档已保留，可选择临时试玩。"};
       return{kind,envelope,raw,source};
     }catch{return{kind:corruptKind,reason:"旧案卷无法读取；原档已保留，可选择临时试玩。"};}
@@ -519,4 +590,3 @@ export function loadProfile(storage=globalThis.localStorage){
 export function pauseRecoveredCombat(envelope){
   if(!validateEnvelope(envelope))return{ok:false,reason:"案卷无效，无法恢复。"};const draft=clone(envelope);if(draft.game.phase!=="combat")return{ok:true,envelope:draft,changed:false};draft.game.phase="paused";if(!validateEnvelope(draft))return{ok:false,reason:"暂停恢复校验失败。"};return{ok:true,envelope:draft,changed:true};
 }
-export function deterministicHash(game){const copy=clone(game);copy.log=[];copy.save_revision=0;return JSON.stringify(copy);}
