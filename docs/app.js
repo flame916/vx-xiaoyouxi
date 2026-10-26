@@ -1,8 +1,8 @@
 import {
   CONFIG,INSURANCES,createEnvelope,cardDisplay,positionOnPath,moveEntity,mergeEntities,buyOffer,
   refreshOffers,salvage,startWave,tick,purchaseItem,startNextRun,nextActionId,actionAlreadyProcessed,
-  receiptFor,recordAction,commitEnvelope,loadProfile,migrateFrom06,migrateFrom07,migrateFrom08,pauseRecoveredCombat,ratingLabel,buyCostForWave
-} from "./core.js?v=0.9e.0";
+  receiptFor,recordAction,commitEnvelope,loadProfile,migrateFrom06,migrateFrom07,migrateFrom08,migrateFrom09,pauseRecoveredCombat,ratingLabel,buyCostForWave,expansionCost,expandFormation,equipTower,unequipTower,towerEffectiveStats
+} from "./core.js?v=1.0.0";
 
 window.__liLePeiBooted = true;
 
@@ -18,10 +18,11 @@ const PHASE_LABEL={prep:"布防",combat:"战斗中",paused:"已暂停",victory:"
 const phaseText=phase=>PHASE_LABEL[phase]||phase;
 const TILE={path:"./assets/0.7/tile-path.svg",office:"./assets/0.7/tile-office.svg",ground:"./assets/0.7/tile-ground.svg",arrow:"./assets/0.7/path-arrow.svg",entry:"./assets/0.7/marker-entry.svg",exit:"./assets/0.7/marker-exit.svg",inspector:"./assets/0.7/inspector.svg"};
 const UNIT_ICON={car_damage:"./assets/0.7/unit-car-damage.svg",construction:"./assets/0.7/unit-construction.svg",property:"./assets/0.7/unit-property.svg",machine_damage:"./assets/0.9/unit-machine-damage.svg",liability:"./assets/0.9/unit-liability.svg",marine:"./assets/0.9/unit-marine.svg"};
-const ENEMY_TOKEN={third_party_car:"./assets/0.9/enemy-token-thief.svg",foreman:"./assets/0.9/enemy-token-soldier.svg",foreman_boss:"./assets/0.9/enemy-token-soldier.svg",ship_owner:"./assets/0.9/enemy-token-thief.svg"};
-const ENEMY_NAME={third_party_car:"客户",foreman:"工地佬",foreman_boss:"工地佬",ship_owner:"船佬"};
-const ENEMY_TIER={third_party_car:"small",foreman:"elite",foreman_boss:"boss",ship_owner:"boss"};
-const ENEMY_ICON={third_party_car:"./assets/0.7/enemy-third-party-car.svg",foreman:"./assets/0.7/enemy-foreman.svg",foreman_boss:"./assets/0.7/enemy-foreman.svg",ship_owner:"./assets/0.9b/enemy-ship-owner.svg"};
+const ENEMY_TOKEN={third_party_car:"./assets/0.9/enemy-token-thief.svg",foreman:"./assets/0.9/enemy-token-soldier.svg",foreman_boss:"./assets/0.9/enemy-token-soldier.svg",ship_owner:"./assets/0.9/enemy-token-thief.svg",complaint:""};
+const ENEMY_NAME={third_party_car:"客户",foreman:"工地佬",foreman_boss:"工地佬",ship_owner:"船佬",complaint:"投诉"};
+const ENEMY_TIER={third_party_car:"small",foreman:"elite",foreman_boss:"boss",ship_owner:"boss",complaint:"boss"};
+const EQUIP_GLYPH={reinforce:"固",aim:"瞄",rush:"急"};
+const ENEMY_ICON={third_party_car:"./assets/0.7/enemy-third-party-car.svg",foreman:"./assets/0.7/enemy-foreman.svg",foreman_boss:"./assets/0.7/enemy-foreman.svg",ship_owner:"./assets/0.9b/enemy-ship-owner.svg",complaint:""};
 const ITEM_ICON=Object.fromEntries(ITEM_CATALOG.map(item=>[item.id,"./assets/0.7/"+item.icon]));
 let envelope=null,mode="booting",screen="cover",message="",showResumeNotice=false,mergeMode=false;
 let shopReturn="cover",modalIntent=null,modalBusy=false,saveBlocked=null,toastTimer=null;
@@ -30,7 +31,7 @@ let storageMetrics={lastMs:0,maxMs:0,longFrames:0,ticks:0,writes:0,serializedByt
 let boardDirty=true,boardSig="",terminalDismissed=false,lastHandSig="",lastOfferSig="",lastPhaseKey="";
 let lastHeartSig="",lastLogSig="",lastItemSig="";
 let observedWave=0,lastLeakCount=0,waveBannerTimer=null,leakTimer=null,bossBannerTimer=null;
-let seenEnemies=new Set(),seenInit=false,callSeen=new Map(),callTimers=[];
+let seenEnemies=new Set(),seenInit=false,callSeen=new Map(),callTimers=[],padSelecting=false,lastDropToast="";
 const $say=message=>{const toast=$("toast");if(!toast)return;toast.textContent=message;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast.textContent="";},3500);};
 const isPrep=()=>Boolean($game()?.phase==="prep"),isPersistent=()=>mode==="writer",canMutate=()=>!saveBlocked&&(mode==="writer"||mode==="memory");
 function blankTemporaryEnvelope(){return createEnvelope(CONFIG.simulation.default_seed,{premium:0,grantApplied:true});}
@@ -49,16 +50,16 @@ function initializeWriter(){
     }else envelope=loaded.envelope;
     mode="writer";screen="cover";observedWave=$game().current_wave;return;
   }
-  if(loaded.kind==="import08"||loaded.kind==="import07"||loaded.kind==="import06"){
+  if(loaded.kind==="import09"||loaded.kind==="import08"||loaded.kind==="import07"||loaded.kind==="import06"){
     const sourceKey=loaded.source?.key||loaded.envelope.format_id;
-    const migrate=loaded.kind==="import08"?migrateFrom08:loaded.kind==="import07"?migrateFrom07:migrateFrom06;
+    const migrate=loaded.kind==="import09"?migrateFrom09:loaded.kind==="import08"?migrateFrom08:loaded.kind==="import07"?migrateFrom07:migrateFrom06;
     const migrated=migrate(loaded.envelope,{key:sourceKey,raw:loaded.raw});
     if(!migrated.ok){enterMemory(migrated.reason+" 可选择临时试玩，本次不会保存。");return;}
     const saved=commitEnvelope(null,migrated.envelope,window.localStorage);
     if(saved.ok){envelope=saved.envelope;mode="writer";screen="cover";message="旧案卷已接续：保费、库存与当前局面保留；返利从 0 起，旧档原样保留。";showResumeNotice=true;observedWave=$game().current_wave;return;}
     enterMemory("旧案未能安全迁入，原存档已保留。可临时试玩，但本次不会保存。");return;
   }
-  if(loaded.kind==="corrupt_import08"||loaded.kind==="corrupt_import07"||loaded.kind==="corrupt_import06"){enterMemory(loaded.reason+" 原案卷不会被覆盖。");return;}
+  if(loaded.kind==="corrupt_import09"||loaded.kind==="corrupt_import08"||loaded.kind==="corrupt_import07"||loaded.kind==="corrupt_import06"){enterMemory(loaded.reason+" 原案卷不会被覆盖。");return;}
   if(loaded.kind==="empty"){
     const fresh=createEnvelope(CONFIG.simulation.default_seed,{premium:CONFIG.profile.first_grant,grantApplied:true});
     const saved=commitEnvelope(null,fresh,window.localStorage);
@@ -221,7 +222,7 @@ function selectEntity(ref,card){const g=$game();if(!isPrep()){$say("战斗中不
 function buyOfferAction(index){
   if(!isPrep()){$say("战斗中不能启用条款。");return;}
   const price=buyCostForWave($game().current_wave);
-  runUserAction("buy-offer",{offer_index:index},draft=>buyOffer(draft.game,draft.profile,index),"已收进待启用栏，支出 "+price+" 保费。点条款，再点亮起的办公位。");
+  const ok=runUserAction("buy-offer",{offer_index:index},draft=>buyOffer(draft.game,draft.profile,index),"已收进待启用栏，支出 "+price+" 保费。点条款，再点亮起的办公位。");if(ok)advanceTeaching(1);
 }
 function moveBackAction(source,handIndex){
   if(!isPrep()){$say("战斗中不能调整条款。");return;}
@@ -232,77 +233,70 @@ function moveBackAction(source,handIndex){
   runUserAction("move-back",{source,target:{area:"hand",index:handIndex}},draft=>moveEntity(draft.game,source,{area:"hand",index:handIndex}),"已将「"+cardDisplay(card).name+"」收回待启用栏（费用 0）。");
 }
 function startMergeMode(){if(!isPrep()||$game().selected?.area!=="hand"){$say("先选一份待启用条款，再点合成。");return;}mergeMode=true;$say("合成模式：再点一份同类同级条款；也可点兼容办公位合成。");render();}
-function officeIndexAt(col,row){return CONFIG.board.office_positions.findIndex(pos=>pos[0]===col&&pos[1]===row);}
+function officePositions(){const g=$game();return CONFIG.board.office_positions.concat((g?.pad_choices||[]).map(i=>CONFIG.board.expansion_pads[i]));}
 function cellKey(col,row){return col+","+row;}
-function showRadius(officeIndex){const g=$game();if(g.selected?.area!=="formation"||g.selected.index!==officeIndex)return null;const tower=g.formation[officeIndex],spec=CONFIG.towers.find(item=>item.id===tower?.type);if(!spec)return null;const [col,row]=CONFIG.board.office_positions[officeIndex],radius=spec.radius_cells,range=document.createElement("span");range.className="range-indicator";range.style.width=(radius*2/CONFIG.board.columns*100)+"%";range.style.height=(radius*2/CONFIG.board.rows*100)+"%";range.style.left=((col+.5)/CONFIG.board.columns*100)+"%";range.style.top=((row+.5)/CONFIG.board.rows*100)+"%";range.title="攻击范围约"+radius+"格";return range;}
-function placeSelected(officeIndex){const g=$game();if(!g.selected){const tower=g.formation[officeIndex];if(tower){g.selected={area:"formation",index:officeIndex};describe(tower);$say("已选办公位"+(officeIndex+1)+"；红圈显示攻击范围，可选择空位移动。");render();}else $say("先选一份条款，再点办公位。");return;}if(!isPrep()){$say("战斗中不能布置条款。");return;}if(!canMutate())return;
-  const selected=g.selected,slot=g.formation[officeIndex];if(selected.area==="formation"&&selected.index===officeIndex){g.selected=null;mergeMode=false;describe(null);$say("已取消办公位选择。");render();return;}
-  if(mergeMode&&selected.area==="hand"){if(!slot){$say("合成目标必须已有同类同级条款；退出合成后可布置。");return;}const source=selected,target={area:"formation",index:officeIndex};runUserAction("merge",{source,target},draft=>mergeEntities(draft.game,source,target),"合成完成，办公位已升级。");mergeMode=false;describe(null);render();return;}
-  if(slot){$say("办公位已占用；普通点击不会合成，请显式选择合成。");return;}
-  const name=cardDisplay(cardAtRef(selected)).name;
-  runUserAction("move",{source:selected,target:{area:"formation",index:officeIndex}},draft=>moveEntity(draft.game,selected,{area:"formation",index:officeIndex}),"已将"+name+"布置到办公位"+(officeIndex+1)+"，费用 0。");render();
-}
-function makeCard(card,ref,area){const button=document.createElement("button"),info=cardDisplay(card);button.type="button";button.className="card "+(area==="offer"?"offer-card":"hand-card")+(isSameRef($game().selected,ref)?" selected":"");button.dataset.dropArea=area;button.dataset.dropIndex=String(ref.index);button.setAttribute("aria-label",(area==="offer"?"可选条款 "+info.name+"，本波选用花费"+buyCostForWave($game().current_wave)+"保费":info.name+" "+info.level+"级"));const glyph=document.createElement("b");glyph.className="card-glyph";glyph.textContent=info.glyph;const name=document.createElement("small");name.className="card-name";name.textContent=info.name;const badge=document.createElement("img");badge.className="card-badge";badge.src=UNIT_ICON[card.type]||"";badge.alt="";button.append(glyph,badge,name);if(area==="hand"){const level=document.createElement("span");level.className="card-level";level.textContent=info.level;button.append(level);}else{const cost=document.createElement("span");cost.className="card-cost";const coin=document.createElement("i");coin.textContent="保";cost.append(coin,document.createTextNode(String(buyCostForWave($game().current_wave))));button.append(cost);}button.addEventListener("click",()=>area==="offer"?buyOfferAction(ref.index):selectEntity(ref,card));return button;}
-function makeHandSlot(index){const cell=document.createElement("button");cell.type="button";cell.className="hand-slot";cell.dataset.dropArea="hand";cell.dataset.dropIndex=String(index);cell.textContent="＋";cell.setAttribute("aria-label","待启用条款空格"+(index+1));cell.addEventListener("click",()=>{const g=$game();if(!isPrep()||!canMutate()){$say("战斗中不能调整条款。");return;}const selected=g.selected;if(selected?.area==="formation"){const card=g.formation[selected.index];cell.setAttribute("aria-label","收回"+(card?cardDisplay(card).name:"")+"到待启用栏第"+(index+1)+"格");moveBackAction(selected,index);}else $say("先选一个已布置的办公位，再点空槽收回。");});return cell;}
+function showRadius(officeIndex){const g=$game();if(g.selected?.area!=="formation"||g.selected.index!==officeIndex)return null;const tower=g.formation[officeIndex],spec=CONFIG.towers.find(item=>item.id===tower?.type);if(!spec)return null;const mods=towerEffectiveStats?towerEffectiveStats(tower):{radius:spec.radius_cells};const [col,row]=officePositions()[officeIndex],radius=mods.radius,range=document.createElement("span");range.className="range-indicator";range.style.width=(radius*2/CONFIG.board.columns*100)+"%";range.style.height=(radius*2/CONFIG.board.rows*100)+"%";range.style.left=((col+.5)/CONFIG.board.columns*100)+"%";range.style.top=((row+.5)/CONFIG.board.rows*100)+"%";range.title="攻击范围约"+radius.toFixed(1)+"格";return range;}
+function selectPad(padIndex){if(!isPrep()){$say("布防阶段才能扩建。");return;}const cost=expansionCost($game());if(cost===null){$say("扩建已满 8/8。");return;}$say("已选空地，确认扩建第"+($game().slot_count+1)+"位（"+cost+"保费）。");doExpand(padIndex);}
+function doExpand(padIndex){const result=runUserAction("expand",{pad_index:padIndex},draft=>expandFormation(draft.game,draft.profile,padIndex),"扩建完成，新办公位已加入。");if(result)advanceTeaching(6);padSelecting=false;render();}
 function arrowAngle(row,col,nextCol,nextRow){if(nextRow===undefined)return 0;if(nextRow>row)return 90;if(nextRow<row)return 270;return nextCol>col?0:180;}
+function makeCard(card,ref,area){const button=document.createElement("button"),info=cardDisplay(card);button.type="button";button.className="card "+(area==="offer"?"offer-card":"hand-card")+(isSameRef($game().selected,ref)?" selected":"");button.dataset.dropArea=area;button.dataset.dropIndex=String(ref.index);button.setAttribute("aria-label",(area==="offer"?"可选条款 "+info.name+"，本波选用花费"+buyCostForWave($game().current_wave)+"保费":info.name+" "+info.level+"级"));const glyph=document.createElement("b");glyph.className="card-glyph";glyph.textContent=info.glyph;const name=document.createElement("small");name.className="card-name";name.textContent=info.name;const badge=document.createElement("img");badge.className="card-badge";badge.src=UNIT_ICON[card.type]||"";badge.alt="";button.append(glyph,badge,name);if(area==="hand"){const level=document.createElement("span");level.className="card-level level-"+info.level;level.textContent=info.level;button.append(level);if(card.equipment_id&&EQUIP_GLYPH[card.equipment_id]){const eq=document.createElement("small");eq.className="equip-mark";eq.textContent=EQUIP_GLYPH[card.equipment_id];button.append(eq);}}else{const cost=document.createElement("span");cost.className="card-cost";const coin=document.createElement("i");coin.textContent="保";cost.append(coin,document.createTextNode(String(buyCostForWave($game().current_wave))));button.append(cost);}button.addEventListener("click",()=>area==="offer"?buyOfferAction(ref.index):selectEntity(ref,card));return button;}
+function makeHandSlot(index){const cell=document.createElement("button");cell.type="button";cell.className="hand-slot";cell.dataset.dropArea="hand";cell.dataset.dropIndex=String(index);cell.textContent="＋";cell.setAttribute("aria-label","待启用条款空格"+(index+1));cell.addEventListener("click",()=>{const g=$game();if(!isPrep()||!canMutate()){$say("战斗中不能调整条款。");return;}const selected=g.selected;if(selected?.area==="formation"){const card=g.formation[selected.index];cell.setAttribute("aria-label","收回"+(card?cardDisplay(card).name:"")+"到待启用栏第"+(index+1)+"格");moveBackAction(selected,index);}else $say("先选一个已布置的办公位，再点空槽收回。");});return cell;}
 function buildMap(){
   const grid=$("boardGrid"),overlay=$("mapOverlay"),pathIndex=new Map(CONFIG.board.path.map((pos,index)=>[cellKey(...pos),index]));
-  if(!grid.dataset.built){
+  const positions=officePositions(),chosen=new Set($game()?.pad_choices||[]),buildKey=positions.map(pos=>pos.join(",")).join("|")+"#"+($game()?.slot_count||6);
+  if(grid.dataset.buildKey!==buildKey){
     grid.replaceChildren();
     for(let row=0;row<CONFIG.board.rows;row++)for(let col=0;col<CONFIG.board.columns;col++){
-      const index=officeIndexAt(col,row),pathStep=pathIndex.get(cellKey(col,row));let cell;
+      const index=positions.findIndex(pos=>pos[0]===col&&pos[1]===row),pid=CONFIG.board.expansion_pads.findIndex(pos=>pos[0]===col&&pos[1]===row),pathStep=pathIndex.get(cellKey(col,row));let cell;
       if(index>=0){
         cell=document.createElement("button");cell.type="button";cell.className="map-cell office-cell";cell.dataset.office=String(index);cell.dataset.dropArea="formation";cell.dataset.dropIndex=String(index);cell.addEventListener("click",()=>placeSelected(index));
+      }else if(pid>=0&&!chosen.has(pid)){
+        cell=document.createElement("button");cell.type="button";cell.className="map-cell pad-cell";cell.dataset.pad=String(pid);cell.textContent="扩";cell.setAttribute("aria-label","扩建空地"+(pid+1));cell.addEventListener("click",()=>selectPad(pid));
+        if(padSelecting)cell.classList.add("pad-ready");
       }else{
         cell=document.createElement("div");cell.className="map-cell";
         if(pathStep!==undefined){
           cell.classList.add("path-cell");
-          if(pathStep===0){
-            const entry=document.createElement("img");entry.className="entry-icon";entry.src=TILE.entry;entry.alt="";cell.append(entry);
-          }else if(pathStep<CONFIG.board.path.length-1){
-            const [nextCol,nextRow]=CONFIG.board.path[pathStep+1]||[];
-            const arrow=document.createElement("img");arrow.className="path-arrow";arrow.src=TILE.arrow;arrow.alt="";
-            arrow.style.transform="rotate("+arrowAngle(row,col,nextCol,nextRow)+"deg)";cell.append(arrow);
-          }
+          if(pathStep===0){const entry=document.createElement("img");entry.className="entry-icon";entry.src=TILE.entry;entry.alt="";cell.append(entry);}
+          else if(pathStep<CONFIG.board.path.length-1){const [nextCol,nextRow]=CONFIG.board.path[pathStep+1]||[];const arrow=document.createElement("img");arrow.className="path-arrow";arrow.src=TILE.arrow;arrow.alt="";arrow.style.transform="rotate("+arrowAngle(row,col,nextCol,nextRow)+"deg)";cell.append(arrow);}
         }else cell.classList.add("floor-cell");
       }
       if(col===CONFIG.board.inspector_position[0]&&row===CONFIG.board.inspector_position[1]){
-        cell.classList.add("inspector-cell");
-        const exit=document.createElement("img");exit.className="exit-mark";exit.src=TILE.exit;exit.alt="";
-        const inspector=document.createElement("img");inspector.className="inspector-img";inspector.src=TILE.inspector;inspector.alt="";
-        cell.append(exit,inspector);
+        cell.classList.add("inspector-cell");const exit=document.createElement("img");exit.className="exit-mark";exit.src=TILE.exit;exit.alt="";const inspector=document.createElement("img");inspector.className="inspector-img";inspector.src=TILE.inspector;inspector.alt="";cell.append(exit,inspector);
       }
       grid.append(cell);
     }
-    grid.dataset.built="true";
+    grid.dataset.buildKey=buildKey;
   }
   const sourceCard=cardAtRef($game().selected);
-  CONFIG.board.office_positions.forEach(([,],index)=>{
+  positions.forEach(([,],index)=>{
     const cell=grid.querySelector('[data-office="'+index+'"]'),tower=$game().formation[index];if(!cell)return;
     const stunned=Boolean(tower&&tower.stunned_until_ms>$game().elapsed_ms);
     cell.classList.toggle("occupied",Boolean(tower));
     cell.classList.toggle("selected",$game().selected?.area==="formation"&&$game().selected.index===index);
     cell.classList.toggle("place-ready",Boolean($game().selected&&!mergeMode&&!tower));
     cell.classList.toggle("offer-ready",Boolean($game().selected?.area==="offer"&&!tower&&!mergeMode));
-    cell.classList.toggle("merge-ready",Boolean(mergeMode&&$game().selected?.area==="hand"&&tower&&sourceCard?.type===tower.type&&sourceCard.level===tower.level&&sourceCard.equipment_id===tower.equipment_id));
-    cell.classList.toggle("stunned",stunned);
-    cell.disabled=!canMutate();
-    cell.replaceChildren();
+    cell.classList.toggle("merge-ready",Boolean(mergeMode&&$game().selected?.area==="hand"&&tower&&sourceCard?.type===tower.type&&sourceCard.level===tower.level));
+    cell.classList.toggle("stunned",stunned);cell.disabled=!canMutate();cell.replaceChildren();
     if(tower){
       const unit=document.createElement("span");unit.className="unit";
       const glyph=document.createElement("b");glyph.className="unit-glyph";glyph.textContent=INSURANCES[tower.type].glyph;
-      const level=document.createElement("small");level.className="unit-level";level.textContent=tower.level;
-      unit.append(glyph,level);
+      const level=document.createElement("small");level.className="unit-level level-"+tower.level;level.textContent=tower.level;unit.append(glyph,level);
+      if(tower.equipment_id&&EQUIP_GLYPH[tower.equipment_id]){const eq=document.createElement("small");eq.className="unit-equip";eq.textContent=EQUIP_GLYPH[tower.equipment_id];unit.append(eq);}
       if(stunned){const stun=document.createElement("small");stun.className="unit-stun";stun.textContent="眩";unit.append(stun);}
-      cell.append(unit);
-      const badge=document.createElement("img");badge.className="unit-badge";badge.src=UNIT_ICON[tower.type]||"";badge.alt="";cell.append(badge);
-    }else{
-      const plus=document.createElement("b");plus.className="office-plus";plus.textContent="＋";cell.append(plus);
-    }
-    cell.setAttribute("aria-label","办公位"+(index+1)+" "+(tower?cardDisplay(tower).name+" "+tower.level+"级":"空位"));
+      cell.append(unit);const badge=document.createElement("img");badge.className="unit-badge";badge.src=UNIT_ICON[tower.type]||"";badge.alt="";cell.append(badge);
+    }else{const plus=document.createElement("b");plus.className="office-plus";plus.textContent="＋";cell.append(plus);}
+    cell.setAttribute("aria-label","办公位"+(index+1)+" "+(tower?cardDisplay(tower).name+" "+tower.level+"级"+(tower.equipment_id&&EQUIP_GLYPH[tower.equipment_id]?" 装备"+EQUIP_GLYPH[tower.equipment_id]:""):"空位"));
   });
   overlay.querySelector(".range-indicator")?.remove();
   const range=showRadius($game().selected?.area==="formation"?$game().selected.index:-1);if(range)overlay.append(range);
+}
+function placeSelected(officeIndex){const g=$game();if(!g.selected){const tower=g.formation[officeIndex];if(tower){g.selected={area:"formation",index:officeIndex};describe(tower);$say("已选办公位"+(officeIndex+1)+"；红圈显示攻击范围，可选择空位移动。");render();}else $say("先选一份条款，再点办公位。");return;}if(!isPrep()){$say("战斗中不能布置条款。");return;}if(!canMutate())return;
+  const selected=g.selected,slot=g.formation[officeIndex];if(selected.area==="formation"&&selected.index===officeIndex){g.selected=null;mergeMode=false;describe(null);$say("已取消办公位选择。");render();return;}
+  if(mergeMode&&selected.area==="hand"){if(!slot){$say("合成目标必须已有同类同级条款；退出合成后可布置。");return;}const source=selected,target={area:"formation",index:officeIndex};const merged=runUserAction("merge",{source,target},draft=>mergeEntities(draft.game,source,target),"合成完成，办公位已升级。");if(merged)advanceTeaching(3);mergeMode=false;describe(null);render();return;}
+  if(slot){$say("办公位已占用；普通点击不会合成，请显式选择合成。");return;}
+  const name=cardDisplay(cardAtRef(selected)).name;
+  const placed=runUserAction("move",{source:selected,target:{area:"formation",index:officeIndex}},draft=>moveEntity(draft.game,selected,{area:"formation",index:officeIndex}),"已将"+name+"布置到办公位"+(officeIndex+1)+"，费用 0。");if(placed)advanceTeaching(2);render();
 }
 function nodeAtMap(col,row){return{left:(col/CONFIG.board.columns*100)+"%",top:(row/CONFIG.board.rows*100)+"%"};}
 function renderMapOverlays(){
@@ -331,7 +325,7 @@ function renderMapOverlays(){
     node.classList.toggle("windup",enemy.windup_ends_ms>g.elapsed_ms);
     node.classList.toggle("slowed",g.elapsed_ms<enemy.slow_until_ms);
     if(!seenInit){seenEnemies.add(enemy.id);if(enemy.type==="ship_owner"){const pct=enemy.y/100000;for(const t of [0.25,0.5,0.75])if(pct>=t)callSeen.set(enemy.id+":"+t,true);}}
-    else if(ENEMY_TIER[enemy.type]==="boss"&&!seenEnemies.has(enemy.id)){seenEnemies.add(enemy.id);showBossBanner(ENEMY_NAME[enemy.type]);}
+    else if(ENEMY_TIER[enemy.type]==="boss"&&!seenEnemies.has(enemy.id)){seenEnemies.add(enemy.id);showBossBanner(ENEMY_NAME[enemy.type]);if(enemy.type==="complaint")$say(CONFIG.boss.complaint.banner_text+"：终局大案，漏过将扣 100 耐久。");advanceTeaching(7);}
     node.classList.toggle("rooted",g.elapsed_ms<(enemy.root_until_ms||0));
     node.classList.toggle("hit",hitIds.has(enemy.id));
     node.querySelector(".enemy-name").textContent=ENEMY_NAME[enemy.type];
@@ -471,7 +465,19 @@ function renderBossCalls(g,layer){
 }
 function showWaveBanner(text){const banner=$("waveBanner");if(!banner)return;banner.textContent=text;banner.hidden=false;banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";clearTimeout(waveBannerTimer);waveBannerTimer=setTimeout(()=>{banner.hidden=true;},CONFIG.presentation.wave_banner_ms);}
 function flashLeak(){const screenNode=$("gameScreen");if(!screenNode)return;screenNode.classList.remove("leak-flash");void screenNode.offsetWidth;screenNode.classList.add("leak-flash");clearTimeout(leakTimer);leakTimer=setTimeout(()=>screenNode.classList.remove("leak-flash"),CONFIG.presentation.leak_flash_ms);}
-function teachingState(){const g=$game(),p=$profile();if(!g||!p||p.teaching_done!==false)return null;if(g.phase!=="prep"||g.current_wave!==1||g.settlement)return null;let step=0;if(g.formation.some(Boolean))step=2;else if(g.hand.filter(Boolean).length>CONFIG.economy.initial_hand.length)step=1;return{step,config:CONFIG.teaching.steps[step]};}
+function teachingState(){const g=$game(),p=$profile();if(!g||!p||p.teaching_done)return null;const stage=Math.max(0,Math.min(CONFIG.teaching.steps.length,p.teaching_stage??0));if(stage>=CONFIG.teaching.steps.length)return null;return{step:stage,config:CONFIG.teaching.steps[stage]};}
+function advanceTeaching(to){const p=$profile();if(!p||p.teaching_done||(p.teaching_stage??0)>=to||to>CONFIG.teaching.steps.length)return;runUserAction("teaching-stage",{stage:to},draft=>{if(!draft.profile.teaching_done&&(draft.profile.teaching_stage??0)<to)draft.profile.teaching_stage=to;return{ok:true}},"教学进度 "+to+"/"+CONFIG.teaching.steps.length+"。");}
+function renderExpand(){const btn=$("expandButton");if(!btn)return;const g=$game(),p=$profile(),prep=isPrep(),cost=expansionCost(g);let label="扩建";
+  if(g.slot_count>=CONFIG.economy.expansion.max_slot_count)label="扩建已满 8/8";
+  else if(g.expansion_used_wave===g.current_wave)label="本波已扩建";
+  else if(cost!==null)label="扩建 · "+cost+"保费";
+  const disabled=!prep||!canMutate()||g.slot_count>=CONFIG.economy.expansion.max_slot_count||g.expansion_used_wave===g.current_wave||(cost!==null&&p.premium<cost);
+  const why=disabled?(mode==="readonly"?"只读窗口":!prep?"布防阶段才能扩建":g.expansion_used_wave===g.current_wave?"本波已扩建":g.slot_count>=8?"扩建已满 8/8":"保费不足：扩建需要 "+cost+" 保费。"):"点选预设空地扩建"+g.slot_count+"→"+(g.slot_count+1)+"位";
+  btn.textContent=label;btn.disabled=disabled;btn.title=why;}
+function renderEquip(){const panel=$("equipPanel"),box=$("equipButtons"),hint=$("equipHint");if(!panel||!box)return;const g=$game(),p=$profile(),sel=g.selected;const tower=sel?.area==="formation"?g.formation[sel.index]:null;panel.hidden=!tower;if(!tower){box.replaceChildren();return;}const prep=isPrep();box.replaceChildren();
+  for(const type of CONFIG.equipment.types){const owned=p.equipment_owned?.[type.id]||0,assigned=g.formation.filter(t=>t&&t.equipment_id===type.id).length,current=tower.equipment_id===type.id,btn=document.createElement("button");btn.type="button";btn.className="equip-button"+(current?" equipped":"");btn.textContent=type.name+" "+type.glyph+" · 持有"+owned+" 可用"+Math.max(0,owned-assigned);btn.disabled=!prep||!canMutate()||owned<=0||assigned>=owned&&!current;btn.title=btn.disabled?(owned<=0?"未持有该类装备":!prep?"布防阶段才能更换装备":assigned>=owned?"可用装备不足":"不可用"):type.desc;btn.addEventListener("click",()=>{const ok=runUserAction("equip",{slot:sel.index,equipment:type.id},draft=>equipTower(draft.game,draft.profile,sel.index,type.id),"已装备"+type.name+"。");if(ok)advanceTeaching(5);render();});box.append(btn);}
+  const off=document.createElement("button");off.type="button";off.className="equip-button";off.textContent="卸下";off.disabled=!prep||!canMutate()||!tower.equipment_id||tower.equipment_id==="basic";off.addEventListener("click",()=>{runUserAction("unequip",{slot:sel.index},draft=>unequipTower(draft.game,draft.profile,sel.index),"已卸下装备。");render();});box.append(off);
+  hint.textContent=prep?"一塔一件；换装只改分配，不消耗持有。":"布防阶段才能更换装备。";}
 function renderTeaching(){const state=teachingState(),bar=$("teachingBar"),offers=$("offers"),start=$("startButton");
   if(!state){bar.hidden=true;offers.classList.remove("teaching-offers");start.classList.remove("teaching-start");document.querySelectorAll(".office-cell.teaching-office").forEach(cell=>cell.classList.remove("teaching-office"));return;}
   bar.hidden=false;$("teachingStep").textContent=(state.step+1)+"/"+CONFIG.teaching.steps.length;$("teachingText").textContent=state.config.text;
@@ -518,7 +524,7 @@ function render(){
   document.querySelector(".app-shell").dataset.screen=screen;
   $("startClaimButton").textContent=terminal?"查看结案":g.phase==="paused"?"继续案件":"开始上班";
   $("startClaimButton").disabled=!canMutate();
-  $("coverNote").textContent=message||(showResumeNotice?"案件已接续，进入后可明确继续战斗。":r.status==="terminal"?"案件已结案 · 可查看结果、购买或开始下一局":"未决案件 · 五波现场处置");
+  $("coverNote").textContent=message||(showResumeNotice?"案件已接续，进入后可明确继续战斗。":r.status==="terminal"?"案件已结案 · 可查看结果、购买或开始下一局":"未决案件 · 十波现场处置");
   $("temporaryPlayButton").hidden=mode!=="memory";
   const terminalEntry=r.status==="terminal"&&canMutate();
   $("marketingButton").disabled=!terminalEntry;
@@ -539,10 +545,11 @@ function render(){
   $("saveIssue").hidden=!saveBlocked;if(saveBlocked)$("saveIssueText").textContent=saveBlocked.reason;
   renderHearts();
   $("pointsLabel").textContent=p.premium;
+  if(g.log[0]&&/掉落装备|大案必掉装备/.test(g.log[0])&&g.log[0]!==lastDropToast){lastDropToast=g.log[0];$say(g.log[0]);}
   $("waveLabel").textContent=terminal?(g.phase==="victory"?"结案":"失守"):"第"+g.current_wave+"/"+CONFIG.waves.length+"波";
   const ribbon=$("waveLabel").parentElement;ribbon.classList.toggle("win",g.phase==="victory");ribbon.classList.toggle("lose",g.phase==="defeat");
   buildMap();renderMapOverlays();renderTeaching();renderPauseOverlay();
-  const handSig=JSON.stringify([g.hand,g.selected,mergeMode,prep,g.current_wave]);
+  const handSig=JSON.stringify([g.hand,g.selected,mergeMode,prep,g.current_wave,g.slot_count,g.pad_choices]);
   if(handSig!==lastHandSig){
     const hand=$("hand");hand.replaceChildren();
     for(let i=0;i<CONFIG.economy.hand_capacity;i++){const card=g.hand[i];hand.append(card?makeCard(card,{area:"hand",index:i},"hand"):makeHandSlot(i));}
@@ -588,7 +595,7 @@ function render(){
   merge.querySelector("span").textContent=mergeMode?"×":"合";merge.querySelector("small").textContent=mergeMode?"取消":"合成";
   $("salvageButton").disabled=!g.selected||g.selected.area==="offer"||!prep||!canMutate();
   $("salvageButton").title=$("salvageButton").disabled?"先选一份已布置或待启用条款才能回收":"回收所选条款";
-  renderItems();
+  renderItems();renderExpand();renderEquip();
   // 0.8: shop only opens after a terminal run; the locked entry shows a visible reason.
   const shopTool=$("shopToolButton"),shopLocked=r.status!=="terminal";
   shopTool.disabled=shopLocked||!canMutate();
@@ -610,7 +617,7 @@ function showCover(){if(!$game())return;if($game().phase==="combat"){const ok=ru
 function showGame(){if(!$game())return;screen="game";$game().selected=null;mergeMode=false;describe(null);closeSheet();seenEnemies=new Set();seenInit=false;callSeen=new Map();boardSig="";boardDirty=true;render();if(showResumeNotice){$say($game().phase==="paused"?"案件已准确接续并暂停；点“继续战斗”后才会开打。":"案件已接续。");showResumeNotice=false;}}
 function showShop(returnTo){if(!$game())return;if($run().status!=="terminal"||!["victory","defeat"].includes($game().phase)){$say("结案后开放");return;}shopReturn=returnTo;screen="shop";closeSheet();render();}
 function closeShop(){screen=shopReturn==="game"?"game":"cover";boardSig="";boardDirty=true;render();}
-function openSheet(which){const layer=$("sheetLayer");if(!layer)return;layer.hidden=false;const details=$("detailsDisclosure");if(which==="help")details.open=true;else if(which==="log")details.open=false;layer.querySelector(".sheet").scrollTop=which==="log"?260:0;}
+function openSheet(which){const layer=$("sheetLayer");if(!layer)return;layer.hidden=false;const details=$("detailsDisclosure");if(which==="help"){details.open=true;advanceTeaching(4);}else if(which==="log")details.open=false;layer.querySelector(".sheet").scrollTop=which==="log"?260:0;}
 function closeSheet(){const layer=$("sheetLayer");if(layer)layer.hidden=true;}
 function dismissTerminal(){terminalDismissed=true;render();}
 function doStartWave(){if(!$game())return;if(["victory","defeat"].includes($game().phase)){terminalDismissed=false;render();return;}if($game().phase==="paused"){runUserAction("continue-combat",{run_id:$run().run_id},draft=>{draft.game.phase="combat";return{ok:true};},"战斗继续。");lastFrame=performance.now();accumulator=0;return;}if($game().phase!=="prep")return;
@@ -619,12 +626,12 @@ function doStartWave(){if(!$game())return;if(["victory","defeat"].includes($game
 function requestNewRun(){askConfirm("new-run");}
 function pauseForLifecycle(){if(!envelope||saveBlocked||$game().phase!=="combat")return;if(mode==="memory"){$game().phase="paused";accumulator=0;lastFrame=performance.now();render();return;}if(mode!=="writer")return;const previous=envelope,candidate=clone(envelope);candidate.game.phase="paused";const result=commitCandidate(previous,candidate);accumulator=0;lastFrame=performance.now();if(!result.ok)$say("后台暂停未能保存，战斗已冻结，请核对保存结果。");render();}
 function openShopFromTerminal(){showShop("game");}
-function skipTeaching(){runUserAction("teaching-skip",{source:"skip"},draft=>{draft.profile.teaching_done=true;return{ok:true};},"已跳过首局教学。");}
+function skipTeaching(){runUserAction("teaching-skip",{source:"skip"},draft=>{draft.profile.teaching_done=true;draft.profile.teaching_stage=CONFIG.teaching.steps.length;return{ok:true};},"已跳过首局教学。");}
 function frame(now){const dt=Math.max(0,now-lastFrame);lastFrame=now;if(dt>100)storageMetrics.longFrames++;if(mode==="writer"||mode==="memory"){
     if($game()?.phase==="combat"&&!modalIntent&&!saveBlocked){accumulator+=dt;const step=CONFIG.simulation.tick_ms,steps=Math.min(Math.floor(accumulator/step),CONFIG.simulation.max_catchup_ticks_per_frame);if(steps>0){const previous=envelope,candidate=clone(envelope);let done=0;for(;done<steps&&candidate.game.phase==="combat";done++){const result=tick(candidate.game,candidate.profile,candidate.run);if(result?.ok===false)break;}if(done>0){const saved=commitCandidate(previous,candidate);if(saved.ok){accumulator-=done*step;storageMetrics.ticks+=done;lastFrame=performance.now();}else{accumulator=0;$say(saved.reason+"战斗已暂停。");}}else accumulator=0;render();}}
   }requestAnimationFrame(frame);}
 
-$("startClaimButton").addEventListener("click",()=>showGame());$("temporaryPlayButton").addEventListener("click",()=>showGame());$("startButton").addEventListener("click",doStartWave);$("pauseButton").addEventListener("click",pauseForLifecycle);$("coverButton").addEventListener("click",showCover);$("marketingButton").addEventListener("click",()=>showShop("cover"));$("terminalShopButton").addEventListener("click",openShopFromTerminal);$("marketingBackButton").addEventListener("click",closeShop);$("nextRunButton").addEventListener("click",requestNewRun);$("abandonFromCoverButton").addEventListener("click",requestNewRun);$("mergeButton").addEventListener("click",()=>{if(mergeMode){mergeMode=false;$say("已退出合成模式。");render();}else startMergeMode();});$("clearSelectionButton").addEventListener("click",()=>clearSelection("已取消条款选择。"));$("salvageButton").addEventListener("click",()=>{if($game().selected)askConfirm("salvage",{ref:$game().selected});});$("refreshButton").addEventListener("click",()=>runUserAction("refresh-offers",{},draft=>refreshOffers(draft.game,draft.profile),"已更换条款组。"));$("reconcileButton").addEventListener("click",reconcileSave);$("confirmAccept").addEventListener("click",completeModalAction);$("confirmCancel").addEventListener("click",closeConfirm);$("shopToolButton").addEventListener("click",()=>showShop("game"));$("logToolButton").addEventListener("click",()=>openSheet("log"));$("helpToolButton").addEventListener("click",()=>openSheet("help"));$("sheetCloseButton").addEventListener("click",closeSheet);$("terminalCloseButton").addEventListener("click",dismissTerminal);$("teachingSkip").addEventListener("click",skipTeaching);$("resumeButton").addEventListener("click",doStartWave);$("pauseCoverButton").addEventListener("click",showCover);
+$("startClaimButton").addEventListener("click",()=>showGame());$("temporaryPlayButton").addEventListener("click",()=>showGame());$("startButton").addEventListener("click",doStartWave);$("pauseButton").addEventListener("click",pauseForLifecycle);$("coverButton").addEventListener("click",showCover);$("marketingButton").addEventListener("click",()=>showShop("cover"));$("terminalShopButton").addEventListener("click",openShopFromTerminal);$("marketingBackButton").addEventListener("click",closeShop);$("nextRunButton").addEventListener("click",requestNewRun);$("abandonFromCoverButton").addEventListener("click",requestNewRun);$("mergeButton").addEventListener("click",()=>{if(mergeMode){mergeMode=false;$say("已退出合成模式。");render();}else startMergeMode();});$("clearSelectionButton").addEventListener("click",()=>clearSelection("已取消条款选择。"));$("salvageButton").addEventListener("click",()=>{if($game().selected)askConfirm("salvage",{ref:$game().selected});});$("refreshButton").addEventListener("click",()=>runUserAction("refresh-offers",{},draft=>refreshOffers(draft.game,draft.profile),"已更换条款组。"));$("reconcileButton").addEventListener("click",reconcileSave);$("confirmAccept").addEventListener("click",completeModalAction);$("confirmCancel").addEventListener("click",closeConfirm);$("shopToolButton").addEventListener("click",()=>showShop("game"));$("logToolButton").addEventListener("click",()=>openSheet("log"));$("helpToolButton").addEventListener("click",()=>openSheet("help"));$("sheetCloseButton").addEventListener("click",closeSheet);$("expandButton")?.addEventListener("click",()=>{const g=$game(),p=$profile(),cost=expansionCost(g);if(cost===null){$say("扩建已满 8/8。");return;}if(g.expansion_used_wave===g.current_wave){$say("本波已扩建。");return;}if(p.premium<cost){$say("保费不足：扩建需要 "+cost+" 保费。");return;}padSelecting=true;$say("选一块空地扩建办公位。");render();});$("terminalCloseButton").addEventListener("click",dismissTerminal);$("teachingSkip").addEventListener("click",skipTeaching);$("resumeButton").addEventListener("click",doStartWave);$("pauseCoverButton").addEventListener("click",showCover);
 $("sheetLayer").addEventListener("click",event=>{if(event.target===$("sheetLayer"))closeSheet();});
 window.addEventListener("resize",()=>{boardSig="";boardDirty=true;if(mode!=="booting")render();});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){stopPointerDrag(true);pauseForLifecycle();}else{lastFrame=performance.now();accumulator=0;}});globalThis.wx?.onHide?.(()=>pauseForLifecycle());globalThis.wx?.onShow?.(()=>{lastFrame=performance.now();accumulator=0;});window.addEventListener("pagehide",()=>{pauseForLifecycle();if(lockRelease){lockRelease();lockRelease=null;}});
