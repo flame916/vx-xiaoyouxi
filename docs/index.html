@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>理了个赔</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=0.9e.0">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
 </head>
 <body>
   <main class="app-shell">
@@ -104,7 +104,7 @@
         <p id="wavePreview" class="wave-preview"></p>
 
         <div id="teachingBar" class="teaching-bar" hidden>
-          <span id="teachingStep" class="teaching-step">1/3</span>
+          <span id="teachingStep" class="teaching-step">1/7</span>
           <b id="teachingText">点一份可选条款，先收进待启用栏</b>
           <button id="teachingSkip" class="teaching-skip" type="button">跳过教学</button>
         </div>
@@ -116,6 +116,7 @@
             <small id="handCount">0/8</small>
             <button id="clearSelectionButton" class="mini-action" type="button" hidden>取消</button>
             <button id="refreshButton" class="refresh-button" type="button">换一组</button>
+            <button id="expandButton" class="mini-action" type="button">扩建</button>
           </div>
           <div id="hand" class="hand-strip" aria-label="待启用条款"></div>
           <div id="offers" class="offer-tray" aria-label="三份可选条款"></div>
@@ -160,7 +161,7 @@
           </div>
           <span id="terminalSeal" class="terminal-seal">结案</span>
           <p class="terminal-kicker">现场处置结果</p>
-          <h2 id="terminalTitle">五波守住</h2>
+          <h2 id="terminalTitle">十波守住</h2>
           <ul id="terminalStats" class="terminal-stats"></ul>
           <p id="terminalText"></p>
           <div id="terminalActions" class="terminal-actions">
@@ -181,6 +182,16 @@
             <h2 id="detailTitle">条款说明</h2>
             <p id="detailText">点选条款查看完整险种名、等级与赔付效果。</p>
           </details>
+          <section class="sheet-section" id="equipPanel" hidden aria-labelledby="equipTitle">
+            <h2 id="equipTitle">装备</h2>
+                        <ul class="equip-guide">
+              <li><img src="./assets/1.0/equip-reinforce.svg" alt=""><b>加固</b>：该塔伤害 ×1.15（四舍五入整数）。</li>
+              <li><img src="./assets/1.0/equip-aim.svg" alt=""><b>瞄准</b>：该塔攻击范围 ×1.15。</li>
+              <li><img src="./assets/1.0/equip-rush.svg" alt=""><b>急件</b>：该塔攻击间隔 ×0.88（更快出手）。</li>
+            </ul>
+<div id="equipButtons" class="equip-buttons"></div>
+            <p id="equipHint" class="guide-note">一塔一件；布防阶段可装备/卸下/更换；持有量跨局。</p>
+          </section>
           <section class="sheet-section" id="insuranceGuide" aria-labelledby="insuranceGuideTitle">
             <h2 id="insuranceGuideTitle">六险一览</h2>
             <ul class="guide-list">
@@ -201,6 +212,39 @@
               <li><b>工地佬·大案</b>、<b>船佬·大案</b>（大案）：第 4、5 波登场，血条加粗，漏件伤害更高。</li>
               <li>Boss 出生时屏幕横幅提示“大案来了”，不暂停战斗；同一大案只提示一次。</li>
               <li>责任险命中会缠上绷带并定身 0.8 秒；定身不叠加，只刷新剩余时间。</li>
+            </ul>
+          </section>
+          <section class="sheet-section" id="levelGuide" aria-labelledby="levelGuideTitle">
+            <h2 id="levelGuideTitle">等级 1–5 与回收</h2>
+            <ul class="guide-list">
+              <li>合成：两份同类同级合为 +1 级；最高 5 级，到 5 级再合会拒绝。</li>
+              <li>伤害随等级提升（例：车损 28/42/63/95/143；建工 14/21/32/48/72）。</li>
+              <li>回收上限：1/2/4/6/8 保费；实际返还 = min(上限, 卡片额度)，免费牌为 0。</li>
+            </ul>
+          </section>
+          <section class="sheet-section" id="equipmentGuide" aria-labelledby="equipmentGuideTitle">
+            <h2 id="equipmentGuideTitle">装备三类</h2>
+            <ul class="guide-list">
+              <li><b>加固</b>（固）：该塔伤害 ×1.15（四舍五入整数）。</li>
+              <li><b>瞄准</b>（瞄）：该塔攻击范围 ×1.15。</li>
+              <li><b>急件</b>（急）：该塔攻击间隔 ×0.88（更快出手）。</li>
+              <li>一塔一件、分配制、库存每种 0–3 跨局；合成保留目标装备；普通波 30%、大案必掉、连续 2 次未掉第 3 次必掉、每局最多 3 件。</li>
+            </ul>
+          </section>
+          <section class="sheet-section" id="expansionGuide" aria-labelledby="expansionGuideTitle">
+            <h2 id="expansionGuideTitle">扩建与空地</h2>
+            <ul class="guide-list">
+              <li>每波布防最多扩建 1 次；第 1 次 5 保费、第 2 次 8 保费；6→最多 8 位。</li>
+              <li>只能从 4 块预设空地中选（P1 (3,4)、P2 (5,4)、P3 (1,7)、P4 (5,7)）；不可拆除、不退款。</li>
+              <li>新位立即成为可布置/拖回/合成/回收的正常办公位。</li>
+            </ul>
+          </section>
+          <section class="sheet-section" id="complaintGuide" aria-labelledby="complaintGuideTitle">
+            <h2 id="complaintGuideTitle">投诉（终局大案）</h2>
+            <ul class="guide-list">
+              <li>第 10 波 @7600ms 出场，纯文字本体：无立绘、无技能、无台词，只有“投诉”与红条。</li>
+              <li>HP 2400（绝对）、速度 2.8、漏过扣 100 耐久，基本等于失守；不免疫道具。</li>
+              <li>出生横幅“大案来了 · 投诉”，不暂停、只播一次。</li>
             </ul>
           </section>
           <div class="log-panel">
@@ -239,6 +283,6 @@
       }
     }, 2600);
   </script>
-  <script type="module" src="./app.js?v=0.9e.0"></script>
+  <script type="module" src="./app.js?v=1.0.0"></script>
 </body>
 </html>
